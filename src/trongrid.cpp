@@ -6,18 +6,11 @@
 #define WIDTH   64 // Matrix width (pixels)
 #define MAX_FPS 40 // Maximum redraw rate, frames/second
 
-#if HEIGHT == 64 // 64-pixel tall matrices have 5 address lines:
-uint8_t addrPins[] = {17, 18, 19, 20, 21};
-#else            // 32-pixel tall matrices have 4 address lines:
-uint8_t addrPins[] = {17, 18, 19, 20};
-#endif
-
-// Remaining pins are the same for all matrix sizes. These values
-// are for MatrixPortal M4. See "simple" example for other boards.
-uint8_t rgbPins[] = {7, 8, 9, 10, 11, 12};
-uint8_t clockPin = 14;
-uint8_t latchPin = 15;
-uint8_t oePin = 16;
+uint8_t rgbPins[]  = {6, 5, 9, 11, 10, 12};
+uint8_t addrPins[] = {A5, A4, A3, A2};
+uint8_t clockPin   = 13;
+uint8_t latchPin   = 0;
+uint8_t oePin      = 1;
 
 
 Adafruit_Protomatter matrix(
@@ -42,6 +35,8 @@ struct pos_t {
 struct Bike {
     pos_t pos[TRAIL_LENGTH];
     pos_t dir;
+    uint8_t speed;
+    uint32_t nextMoveTime;
     uint8_t trailIndex;
     uint16_t hue;
 };
@@ -52,7 +47,7 @@ struct Spot {
     pos_t pos;
     uint16_t hue;
     uint8_t radius;
-    uint32_t phase;
+    uint32_t phaseMicros;
     uint32_t current;
 };
 
@@ -62,6 +57,11 @@ uint32_t prevTime = 0; // Used for frames-per-second throttle
 
 uint32_t secToMicros(uint8_t s) {
     return s * 1000000L;
+}
+
+// secToMillis(1) = 1000
+uint32_t secToMillis(uint8_t s) {
+    return s * 1000L;
 }
 
 pos_t spawnPos() {
@@ -135,6 +135,7 @@ void turn(Bike *bike) {
 }
 
 void moveBike(Bike *bike) {
+
     pos_t pos = bike->pos[bike->trailIndex];
     pos.x += bike->dir.x;
     pos.y += bike->dir.y;
@@ -183,13 +184,16 @@ void drawBikes() {
         Bike *bike = &bikes[i];
 
         for (int trailIndex = 0; trailIndex < TRAIL_LENGTH; trailIndex++) {
-            uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH;
+
+            double pulse = 1 + sin((millis() + trailIndex * 100) / 100.0) / 2;
+
+            // trail effect with pulse
+            uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH * pulse;
             uint8_t val = remap(lerp, 3, 16, 160);
             color_t c = matrix.colorHSV(bike->hue, 255, val);
             pos_t pos = getTrailIndexPos(bike, trailIndex);
             matrix.drawPixel(pos.x, pos.y, c);
         }
-
     }
 }
 
@@ -218,6 +222,8 @@ void initBike(Bike *pBike, uint16_t hue) {
     pBike->pos[0] = spawnPos();
     pBike->dir = randomDir();
     pBike->hue = hue;
+    pBike->speed = random(6, 20);
+    pBike->nextMoveTime = millis();
 }
 
 uint16_t hueForBikeIndex(int i) {
@@ -244,7 +250,7 @@ void initSpot(Spot *pSpot) {
     pSpot->pos = spawnPos();
     pSpot->hue = randomHue();
     pSpot->radius = random(1, 4);
-    pSpot->phase = secToMicros(random(1, 4));
+    pSpot->phaseMicros = secToMicros(random(1, 4));
     pSpot->current = 0;
 }
 
@@ -282,7 +288,7 @@ void drawSpot(Spot *pSpot) {
 //    uint8_t val = remap(pSpot->current, 3, 16, 255);
 
     // fade in and out with a sine wave
-    uint8_t val = 255 * (sin((double)pSpot->current / (double)pSpot->phase * 2 * PI) + 1) / 2;
+    uint8_t val = 255 * (sin((double)pSpot->current / (double)pSpot->phaseMicros * 2 * PI) + 1) / 2;
 
     color_t c = matrix.colorHSV(pSpot->hue, 255, val);
     drawCircle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
@@ -300,6 +306,11 @@ void loop() {
     matrix.fillScreen(0x0);
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
+        if (millis() < bike->nextMoveTime) {
+            continue;
+        }
+        bike->nextMoveTime += secToMillis(1) / bike->speed;
+
         if (shouldBikeTurn(bike)) {
             turn(bike);
         }
@@ -316,7 +327,7 @@ void loop() {
     for (int i = 0; i < N_SPOTS; i++) {
         Spot *spot = &spots[i];
         spot->current += dt;
-        if (spot->current > spot->phase) {
+        if (spot->current > spot->phaseMicros) {
             spot->current = 0;
             initSpot(spot);
         }
