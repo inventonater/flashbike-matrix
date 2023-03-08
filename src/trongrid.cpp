@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>                 // For I2C communication
 #include <Adafruit_Protomatter.h> // For RGB matrix
+#include <encoder_basic.h>
 
 #define HEIGHT  32 // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 #define WIDTH   64 // Matrix width (pixels)
@@ -254,24 +255,6 @@ void initSpot(Spot *pSpot) {
     pSpot->current = 0;
 }
 
-void setup(void) {
-    Serial.begin(115200);
-    ProtomatterStatus status = matrix.begin();
-    Serial.printf("Protomatter begin() status: %d\n", status);
-
-    initColors();
-    for (int i = 0; i < N_BIKES; i++) {
-        initBike(&bikes[i], hueForBikeIndex(i));
-    }
-    
-    for (int i = 0; i < N_SPOTS; i++) {
-        initSpot(&spots[i]);
-    }
-
-    prevTime = micros();
-    Serial.printf("%d total bikes\n", N_BIKES);
-}
-
 bool shouldWait(uint32_t t) {
     long delayMicros = 1000000L / MAX_FPS;
     if (t - prevTime < delayMicros) return true;
@@ -292,6 +275,26 @@ void drawSpot(Spot *pSpot) {
 
     color_t c = matrix.colorHSV(pSpot->hue, 255, val);
     drawCircle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
+}
+
+void setup(void) {
+    Serial.begin(115200);
+    ProtomatterStatus status = matrix.begin();
+    Serial.printf("Protomatter begin() status: %d\n", status);
+
+    initColors();
+    for (int i = 0; i < N_BIKES; i++) {
+        initBike(&bikes[i], hueForBikeIndex(i));
+    }
+    
+    for (int i = 0; i < N_SPOTS; i++) {
+        initSpot(&spots[i]);
+    }
+
+    prevTime = micros();
+    Serial.printf("%d total bikes\n", N_BIKES);
+
+    do_encoder_setup();
 }
 
 void loop() {
@@ -337,4 +340,6 @@ void loop() {
     drawBikes();
     matrix.show();
     prevTime = t;
+
+    do_encoder_loop();
 }
