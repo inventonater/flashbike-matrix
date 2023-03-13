@@ -5,4 +5,5 @@
 .vscode/ipch
 .idea/*
 cmake-build-adafruit_matrix_portal_m4/
+cmake-build-adafruit_feather_m4_can/
 cmake-build-debug/

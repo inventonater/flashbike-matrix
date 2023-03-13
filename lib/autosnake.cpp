@@ -57,7 +57,7 @@ uint32_t secToMicros(uint8_t s) {
     return s * 1000000L;
 }
 
-pos_t spawnPos() {
+pos_t randomPosition() {
     pos_t pos;
     pos.x = random(0, WIDTH);
     pos.y = random(0, HEIGHT);
@@ -66,7 +66,7 @@ pos_t spawnPos() {
 
 // create a random direction for the bike to move in either x or y
 // must not be diagonal
-pos_t randomDir() {
+pos_t randomDirection() {
     pos_t dir;
     if (random(0, 2) == 0) {
         dir.x = 0;
@@ -106,7 +106,7 @@ bool isCollision(Bike *bike, int distance = 0) {
     return false;
 }
 
-bool shouldBikeTurn(Bike *bike) {
+bool ai_shouldChangeDirection(Bike *bike) {
     return random(20) == 0 || isCollision(bike, 10);
 }
 
@@ -208,8 +208,8 @@ void initColors() {
 
 void initBike(Bike *pBike, uint16_t hue) {
     pBike->trailIndex = 0;
-    pBike->pos[0] = spawnPos();
-    pBike->dir = randomDir();
+    pBike->pos[0] = randomPosition();
+    pBike->dir = randomDirection();
     pBike->hue = hue;
 }
 
@@ -234,7 +234,7 @@ uint16_t randomHueNotTooClose() {
 }
 
 void initSpot(Spot *pSpot) {
-    pSpot->pos = spawnPos();
+    pSpot->pos = randomPosition();
     pSpot->hue = randomHue();
     pSpot->radius = random(1, 4);
     pSpot->phaseMicros = secToMicros(random(1, 4));
@@ -293,7 +293,7 @@ void loop() {
     matrix.fillScreen(0x0);
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
-        if (shouldBikeTurn(bike)) {
+        if (ai_shouldChangeDirection(bike)) {
             turn(bike);
         }
         moveBike(bike);
