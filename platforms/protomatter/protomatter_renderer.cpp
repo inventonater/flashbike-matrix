@@ -1,3 +1,4 @@
+#include <renderer.h>
 #include <Arduino.h>
 #include <Adafruit_Protomatter.h>
 
@@ -16,19 +17,19 @@ Adafruit_Protomatter matrix(
         clockPin, latchPin, oePin, true);
 
 
-static void protomatter_init(void *data) {
+static void protomatter_init() {
     matrix.begin();
 }
 
-static void protomatter_clear(void *data) {
+static void protomatter_clear() {
     matrix.fillScreen(0x0);
 }
 
-static void protomatter_draw_pixel(void *data, int x, int y, uint32_t color) {
+static void protomatter_draw_pixel(int x, int y, uint32_t color) {
     matrix.drawPixel(x, y, color);
 }
 
-static void protomatter_draw_rect(void *data, int x, int y, int width, int height, uint32_t color) {
+static void protomatter_draw_rect(int x, int y, int width, int height, uint32_t color) {
     // Draw the top and bottom horizontal lines
     matrix.drawFastHLine(x, y, width, color);
     matrix.drawFastHLine(x, y + height - 1, width, color);
@@ -38,16 +39,16 @@ static void protomatter_draw_rect(void *data, int x, int y, int width, int heigh
     matrix.drawFastVLine(x + width - 1, y, height, color);
 }
 
-static void protomatter_draw_filled_rect(void *data, int x, int y, int width, int height, uint32_t color) {
+static void protomatter_draw_filled_rect(int x, int y, int width, int height, uint32_t color) {
     matrix.fillRect(x, y, width, height, color);
 }
 
-static void protomatter_present(void *data) {
+static void protomatter_present() {
     // matrix.swapBuffers(true);
     matrix.show();
 }
 
-static void protomatter_cleanup(void *data) {
+static void protomatter_cleanup() {
     // matrix.deinit();
 }
 
@@ -55,25 +56,9 @@ Renderer renderer_create() {
     Renderer renderer;
     renderer.init = protomatter_init;
     renderer.clear = protomatter_clear;
-    renderer.dr.aw_pixel = protomatter_draw_pixel;
+    renderer.draw_pixel = protomatter_draw_pixel;
     renderer.draw_rect = protomatter_draw_rect;
     renderer.present = protomatter_present;
     renderer.cleanup = protomatter_cleanup;
     return renderer;
 }
-
-uint32_t system_get_ticks(void) {
-    return millis();
-}
-
-void system_delay(uint32_t ms) {
-    delay(ms);
-}
-
-System system_create() {
-    System system;
-    system.get_ticks = system_get_ticks;
-    system.delay = system_delay;
-    return system;
-}
-

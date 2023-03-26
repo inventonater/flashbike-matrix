@@ -1,4 +1,9 @@
+#include <system.h>
 #include <renderer.h>
+
+#include <stdlib.h>
+#include <time.h>
+// #include <stdbool.h>
 
 const int GRID_WIDTH = 32;
 const int GRID_HEIGHT = 24;
@@ -97,13 +102,13 @@ int main() {
     bool quit = false;
     int dx = 1, dy = 0;
 
-    uint32_t last_move_time = system.get_ticks();
+    uint32_t last_move_time = system.get_millis();
 
     while (!quit) {
         system.handle_input_events(&quit, &dx, &dy);
 
         if (!game_state.game_over) {
-            uint32_t current_time = system.get_ticks();
+            uint32_t current_time = system.get_millis();
             if (current_time - last_move_time > 100) {
                 move_snake(&game_state, dx, dy);
                 last_move_time = current_time;
@@ -113,13 +118,13 @@ int main() {
         renderer.clear();
 
         for (int i = 0; i < game_state.snake.length; i++) {
-            auto x = game_state.snake.body[i].x;
-            auto y = game_state.snake.body[i].y;
+            int x = game_state.snake.body[i].x;
+            int y = game_state.snake.body[i].y;
             renderer.draw_pixel(x, y, 0x00FF00);
         }
 
-        auto x = game_state.food.x;
-        auto y = game_state.food.y;
+        int x = game_state.food.x;
+        int y = game_state.food.y;
         renderer.draw_pixel(x, y, 0xFF0000);
 
         renderer.present();

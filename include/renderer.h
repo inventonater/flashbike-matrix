@@ -1,7 +1,6 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -15,13 +14,5 @@ typedef struct Renderer {
 } Renderer;
 
 extern Renderer renderer_create();
-
-typedef struct System {
-    uint32_t (*get_ticks)(void);
-    void (*delay)(uint32_t ms);
-    void (*handle_input_events)(bool *quit, int *dx, int *dy);
-} System;
-
-extern System system_create();
 
 #endif // RENDERER_H

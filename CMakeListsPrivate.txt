@@ -7,7 +7,7 @@
 
 
 
-set(CMAKE_CONFIGURATION_TYPES "mac" CACHE STRING "Build Types reflect PlatformIO Environments" FORCE)
+set(CMAKE_CONFIGURATION_TYPES "mac;adafruit_feather_m4_can;" CACHE STRING "Build Types reflect PlatformIO Environments" FORCE)
 
 # Convert "Home Directory" that may contain unescaped backslashes on Windows
 
@@ -25,13 +25,78 @@ if (CMAKE_BUILD_TYPE MATCHES "mac")
     include_directories("${CMAKE_CURRENT_LIST_DIR}/src")
     include_directories("/opt/homebrew/include")
     include_directories("/opt/homebrew/include/SDL2")
-    include_directories("/opt/homebrew/lib")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/lib/gptTron")
 
     FILE(GLOB_RECURSE EXTRA_LIB_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/mac/*.*
     )
 endif()
 
+if (CMAKE_BUILD_TYPE MATCHES "adafruit_feather_m4_can")
+    add_definitions(-DPLATFORMIO=60106)
+    add_definitions(-DARDUINO_FEATHER_M4_CAN)
+    add_definitions(-DADAFRUIT_FEATHER_M4_EXPRESS)
+    add_definitions(-DADAFRUIT_FEATHER_M4_CAN)
+    add_definitions(-D__SAME51J19A__)
+    add_definitions(-D__SAMD51__)
+    add_definitions(-D__FPU_PRESENT)
+    add_definitions(-DARM_MATH_CM4)
+    add_definitions(-DENABLE_CACHE)
+    add_definitions(-DVARIANT_QSPI_BAUD_DEFAULT=50000000)
+    add_definitions(-DARDUINO=10805)
+    add_definitions(-DF_CPU=120000000L)
+    add_definitions(-DUSBCON)
+    add_definitions(-DUSB_VID=0x239A)
+    add_definitions(-DUSB_PID=0x80CD)
+    add_definitions(-DUSB_PRODUCT=\"Adafruit\ Feather\ M4\ CAN\")
+    add_definitions(-DUSB_MANUFACTURER=\"Adafruit\")
+    add_definitions(-DARDUINO_ARCH_SAMD)
+    add_definitions(-DUSB_CONFIG_POWER=100)
+    add_definitions(-DARDUINO_SAMD_ADAFRUIT)
+
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/include")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/src")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit Protomatter/src")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit GFX Library")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit BusIO")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/Wire")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/SdFat - Adafruit Fork/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/SPI")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_ZeroDMA")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_ZeroDMA/utility")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit TinyUSB Library/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-cmsis/CMSIS/Core/Include")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/cores/arduino")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_TinyUSB_Arduino/src/arduino")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-cmsis/CMSIS/DSP/Include")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/variants/feather_m4_can")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/lib/gptTron")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit LIS3DH")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit NeoPixel")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit PixelDust")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit SPIFlash/src")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/Adafruit Unified Sensor")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/AnimatedGIF/src")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/MIDI Library/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/Adafruit_TinyUSB_Arduino/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/CI_Tests")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/HID")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/I2S/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/SAMD_AnalogCorrection/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/SDU/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/Servo/src")
+    include_directories("$ENV{HOME}/.platformio/packages/framework-arduino-samd-adafruit/libraries/USBHost/src")
+    include_directories("$ENV{HOME}/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/9.3.1")
+    include_directories("$ENV{HOME}/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/9.3.1/arm-none-eabi")
+    include_directories("$ENV{HOME}/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/arm-none-eabi/9.3.1/include")
+    include_directories("$ENV{HOME}/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/arm-none-eabi/9.3.1/include-fixed")
+    include_directories("$ENV{HOME}/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include")
+
+    FILE(GLOB_RECURSE EXTRA_LIB_SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/adafruit_feather_m4_can/*.*
+    )
+endif()
 
 FILE(GLOB_RECURSE SRC_LIST
     ${CMAKE_CURRENT_LIST_DIR}/src/*.*
