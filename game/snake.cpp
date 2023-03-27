@@ -1,9 +1,9 @@
-#include <system.h>
-#include <renderer.h>
+#include "system.h"
+#include "renderer.h"
+#include "game.h"
 
 #include <stdlib.h>
 #include <time.h>
-// #include <stdbool.h>
 
 const int GRID_WIDTH = 32;
 const int GRID_HEIGHT = 24;
@@ -20,7 +20,7 @@ typedef struct {
 
 typedef struct {
     Snake snake;
-    Position food;
+    Position food_position;
     bool game_over;
 } GameState;
 
@@ -40,7 +40,7 @@ void spawn_food(GameState *game_state) {
         food_position.x = rand() % GRID_WIDTH;
         food_position.y = rand() % GRID_HEIGHT;
     } while (!is_food_valid(game_state, food_position));
-    game_state->food = food_position;
+    game_state->food_position = food_position;
 }
 
 void init_game(GameState *game_state) {
@@ -59,7 +59,7 @@ void init_game(GameState *game_state) {
 }
 
 void move_snake(GameState *game_state, int dx, int dy) {
-    Position new_position = { game_state->snake.position.x + dx, game_state->snake.position.y + dy };
+    Position new_position = {game_state->snake.position.x + dx, game_state->snake.position.y + dy};
 
     if (new_position.x < 0 || new_position.x >= GRID_WIDTH ||
         new_position.y < 0 || new_position.y >= GRID_HEIGHT) {
@@ -68,8 +68,8 @@ void move_snake(GameState *game_state, int dx, int dy) {
     }
 
     for (int i = 0; i < game_state->snake.length; i++) {
-        if (game_state->snake.body[i].x == new_position.x &&
-            game_state->snake.body[i].y == new_position.y) {
+        Position p = game_state->snake.body[i];
+        if (p.x == new_position.x && p.y == new_position.y) {
             game_state->game_over = true;
             return;
         }
@@ -82,16 +82,13 @@ void move_snake(GameState *game_state, int dx, int dy) {
     game_state->snake.body[0] = new_position;
     game_state->snake.position = new_position;
 
-    if (new_position.x == game_state->food.x && new_position.y == game_state->food.y) {
+    if (new_position.x == game_state->food_position.x && new_position.y == game_state->food_position.y) {
         game_state->snake.length++;
         spawn_food(game_state);
     }
 }
 
-int main() {
-    System system = system_create(); // Replace with create_arduino_system() for Arduino
-    Renderer renderer = renderer_create();
-
+uint32_t begin(System system, Renderer renderer) {
     renderer.init();
 
     srand(time(NULL));
@@ -118,13 +115,14 @@ int main() {
         renderer.clear();
 
         for (int i = 0; i < game_state.snake.length; i++) {
-            int x = game_state.snake.body[i].x;
-            int y = game_state.snake.body[i].y;
+            Position bodyPos = game_state.snake.body[i];
+            int x = bodyPos.x;
+            int y = bodyPos.y;
             renderer.draw_pixel(x, y, 0x00FF00);
         }
 
-        int x = game_state.food.x;
-        int y = game_state.food.y;
+        int x = game_state.food_position.x;
+        int y = game_state.food_position.y;
         renderer.draw_pixel(x, y, 0xFF0000);
 
         renderer.present();
@@ -133,9 +131,16 @@ int main() {
     }
 
     renderer.cleanup();
-
     return 0;
 }
 
+uint32_t end(void) {
+    return 0;
+}
 
-
+Game game_create() {
+    Game game;
+    game.begin = begin;
+    game.end = end;
+    return game;
+}

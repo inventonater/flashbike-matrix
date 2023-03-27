@@ -7,7 +7,7 @@
 
 
 
-set(CMAKE_CONFIGURATION_TYPES "mac;adafruit_feather_m4_can;" CACHE STRING "Build Types reflect PlatformIO Environments" FORCE)
+set(CMAKE_CONFIGURATION_TYPES "native;native_snake;adafruit_feather_m4_can;" CACHE STRING "Build Types reflect PlatformIO Environments" FORCE)
 
 # Convert "Home Directory" that may contain unescaped backslashes on Windows
 
@@ -18,7 +18,7 @@ SET(CMAKE_CXX_FLAGS "")
 SET(CMAKE_C_FLAGS "")
 
 
-if (CMAKE_BUILD_TYPE MATCHES "mac")
+if (CMAKE_BUILD_TYPE MATCHES "native")
     add_definitions(-DPLATFORMIO=60106)
 
     include_directories("${CMAKE_CURRENT_LIST_DIR}/include")
@@ -28,10 +28,23 @@ if (CMAKE_BUILD_TYPE MATCHES "mac")
     include_directories("${CMAKE_CURRENT_LIST_DIR}/lib/gptTron")
 
     FILE(GLOB_RECURSE EXTRA_LIB_SOURCES
-        ${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/mac/*.*
+        ${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/native/*.*
     )
 endif()
 
+if (CMAKE_BUILD_TYPE MATCHES "native_snake")
+    add_definitions(-DPLATFORMIO=60106)
+
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/include")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/src")
+    include_directories("/opt/homebrew/include")
+    include_directories("/opt/homebrew/include/SDL2")
+    include_directories("${CMAKE_CURRENT_LIST_DIR}/lib/gptTron")
+
+    FILE(GLOB_RECURSE EXTRA_LIB_SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/.pio/libdeps/native_snake/*.*
+    )
+endif()
 if (CMAKE_BUILD_TYPE MATCHES "adafruit_feather_m4_can")
     add_definitions(-DPLATFORMIO=60106)
     add_definitions(-DARDUINO_FEATHER_M4_CAN)

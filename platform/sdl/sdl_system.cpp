@@ -1,4 +1,6 @@
 #include <system.h>
+#include <renderer.h>
+#include <game.h>
 #include <SDL.h>
 
 uint32_t system_get_millis(void) {
@@ -38,4 +40,11 @@ extern System system_create() {
     system.delay = system_delay;
     system.handle_input_events = system_handle_input_events;
     return system;
+}
+
+int main() {
+    const System system = system_create();
+    const Renderer renderer = renderer_create();
+    const Game game = game_create();
+    game.begin(system, renderer);
 }

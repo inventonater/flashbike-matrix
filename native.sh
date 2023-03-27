@@ -1,4 +1,4 @@
 #pio run -t exec
 
-pio run -e mac
-./.pio/build/mac/program
+pio run -e native_snake
+./.pio/build/native_snake/program
