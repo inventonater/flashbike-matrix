@@ -4,9 +4,7 @@
 // #include <scorpio_pins_arduino.h>
 
 uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
-
-// uint8_t addrPins[] = {A5, A4, A3, A2};
-uint8_t addrPins[] = {ADDR_PIN1, ADDR_PIN2, A2, A3};
+uint8_t addrPins[] = {PROTOMATTER_PIN0, PROTOMATTER_PIN1, PROTOMATTER_PIN2, PROTOMATTER_PIN3};
 
 uint8_t clockPin = 13;
 uint8_t latchPin = 0;
