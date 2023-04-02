@@ -1,0 +1,11 @@
+#list(APPEND SRC_LIST
+#    platform/sdl/sdl_renderer.cpp
+#    platform/sdl/sdl_system.cpp
+#)
+
+list(APPEND SRC_LIST
+    platform/protomatter/protomatter_renderer.cpp
+    platform/protomatter/protomatter_system.cpp
+)
+
+# add_executable(Z_DUMMY_TARGET ${SRC_LIST} platform/* game/* )

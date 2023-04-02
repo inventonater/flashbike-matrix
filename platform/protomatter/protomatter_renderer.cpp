@@ -1,12 +1,17 @@
 #include <renderer.h>
 #include <Arduino.h>
 #include <Adafruit_Protomatter.h>
+// #include <scorpio_pins_arduino.h>
 
 uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
-uint8_t addrPins[] = {A5, A4, A3, A2};
+
+// uint8_t addrPins[] = {A5, A4, A3, A2};
+uint8_t addrPins[] = {ADDR_PIN1, ADDR_PIN2, A2, A3};
+
 uint8_t clockPin = 13;
 uint8_t latchPin = 0;
 uint8_t oePin = 1;
+bool doubleBuffer = true;
 
 #define HEIGHT  32 // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 #define WIDTH   64 // Matrix width (pixels)
@@ -14,7 +19,7 @@ uint8_t oePin = 1;
 
 Adafruit_Protomatter matrix(
         WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
-        clockPin, latchPin, oePin, true);
+        clockPin, latchPin, oePin, doubleBuffer);
 
 
 static void protomatter_init() {
