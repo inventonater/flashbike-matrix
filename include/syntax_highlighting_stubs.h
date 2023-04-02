@@ -1,14 +1,33 @@
 #pragma once
 
-// #ifndef PROTOMATTER_PIN0 
-#define PROTOMATTER_PIN0 A0
-// #endif
-// #ifndef PROTOMATTER_PIN1
-#define PROTOMATTER_PIN1 A1
-// #endif
-// #ifndef PROTOMATTER_PIN2
-#define PROTOMATTER_PIN2 A2
-// #endif
-// #ifndef PROTOMATTER_PIN3
-#define PROTOMATTER_PIN3 A3
-// #endif
+#ifndef PROTOMATTER_ADDR_PIN_0 
+#define PROTOMATTER_ADDR_PIN_0 A0
+#endif
+#ifndef PROTOMATTER_ADDR_PIN_1
+#define PROTOMATTER_ADDR_PIN_1 A1
+#endif
+#ifndef PROTOMATTER_ADDR_PIN_2
+#define PROTOMATTER_ADDR_PIN_2 A2
+#endif
+#ifndef PROTOMATTER_ADDR_PIN_3
+#define PROTOMATTER_ADDR_PIN_3 A3
+#endif
+
+#ifndef PROTOMATTER_RGB_PIN_0
+#define PROTOMATTER_RGB_PIN_0 6
+#endif
+#ifndef PROTOMATTER_RGB_PIN_1
+#define PROTOMATTER_RGB_PIN_1 5
+#endif
+#ifndef PROTOMATTER_RGB_PIN_2
+#define PROTOMATTER_RGB_PIN_2 9
+#endif
+#ifndef PROTOMATTER_RGB_PIN_3
+#define PROTOMATTER_RGB_PIN_3 11
+#endif
+#ifndef PROTOMATTER_RGB_PIN_4
+#define PROTOMATTER_RGB_PIN_4 10
+#endif
+#ifndef PROTOMATTER_RGB_PIN_5
+#define PROTOMATTER_RGB_PIN_5 12
+#endif

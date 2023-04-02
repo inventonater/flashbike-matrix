@@ -1,10 +1,20 @@
 #include <renderer.h>
 #include <Arduino.h>
 #include <Adafruit_Protomatter.h>
-// #include <scorpio_pins_arduino.h>
 
-uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
-uint8_t addrPins[] = {PROTOMATTER_PIN0, PROTOMATTER_PIN1, PROTOMATTER_PIN2, PROTOMATTER_PIN3};
+uint8_t rgbPins[] = {
+    6,5,9,11,10,12
+};
+
+uint8_t addrPins[] = {
+#if ARDUINO_ADAFRUIT_FEATHER_RP2040_SCORPIO
+    0,1,2,3
+#elif ADAFRUIT_FEATHER_M4_CAN
+    5,4,3,2
+#endif
+};
+
+
 
 uint8_t clockPin = 13;
 uint8_t latchPin = 0;
@@ -18,7 +28,6 @@ bool doubleBuffer = true;
 Adafruit_Protomatter matrix(
         WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
         clockPin, latchPin, oePin, doubleBuffer);
-
 
 static void protomatter_init() {
     matrix.begin();
