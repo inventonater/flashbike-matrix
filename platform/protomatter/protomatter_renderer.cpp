@@ -2,19 +2,24 @@
 #include <Arduino.h>
 #include <Adafruit_Protomatter.h>
 
-uint8_t rgbPins[] = {
-    6,5,9,11,10,12
-};
-
-uint8_t addrPins[] = {
-#if ARDUINO_ADAFRUIT_FEATHER_RP2040_SCORPIO
-    0,1,2,3
-#elif ADAFRUIT_FEATHER_M4_CAN
-    5,4,3,2
+#ifdef ARDUINO_ADAFRUIT_FEATHER_RP2040_SCORPIO
+#elif ARDUINO_ADAFRUIT_FEATHER_M4_CAN
 #endif
+
+uint8_t rgbPins[] = {
+    PIN_PROTOMATTER_RGB_0,
+    PIN_PROTOMATTER_RGB_1,
+    PIN_PROTOMATTER_RGB_2,
+    PIN_PROTOMATTER_RGB_3,
+    PIN_PROTOMATTER_RGB_4,
+    PIN_PROTOMATTER_RGB_5,
 };
-
-
+uint8_t addrPins[] = {
+    PIN_PROTOMATTER_ADDR_0,
+    PIN_PROTOMATTER_ADDR_1,
+    PIN_PROTOMATTER_ADDR_2,
+    PIN_PROTOMATTER_ADDR_3
+};
 
 uint8_t clockPin = 13;
 uint8_t latchPin = 0;
