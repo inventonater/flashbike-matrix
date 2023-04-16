@@ -1,4 +1,4 @@
 #pio run -t exec
 
-pio run -e snake_native
-./.pio/build/snake_native/program
+pio run -e cats_native
+./.pio/build/cats_native/program
