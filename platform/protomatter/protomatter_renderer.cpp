@@ -23,8 +23,9 @@ uint8_t addrPins[] = {
 
 uint8_t clockPin = PIN_PROTOMATTER_CLOCK; // 13;
 uint8_t latchPin = PIN_PROTOMATTER_LATCH; // 0;
-uint8_t oePin = PIN_PROTOMATTER_OE // 1;
+uint8_t oePin = PIN_PROTOMATTER_OE; // 1;
 
+uint8_t bitDepth = 5;
 bool doubleBuffer = true;
 
 #define HEIGHT  32 // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
@@ -32,7 +33,7 @@ bool doubleBuffer = true;
 #define MAX_FPS 40 // Maximum redraw rate, frames/second
 
 Adafruit_Protomatter matrix(
-        WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
+        WIDTH, bitDepth, 1, rgbPins, sizeof(addrPins), addrPins,
         clockPin, latchPin, oePin, doubleBuffer);
 
 static void protomatter_init() {
@@ -61,6 +62,12 @@ static void protomatter_draw_filled_rect(int x, int y, int width, int height, ui
     matrix.fillRect(x, y, width, height, color);
 }
 
+
+static void protomatter_draw_circle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
+    matrix.fillCircle(x, y, radius, color);
+    matrix.drawCircle(x, y, radius, borderColor);
+}
+
 static void protomatter_present() {
     // matrix.swapBuffers(true);
     matrix.show();
@@ -76,6 +83,7 @@ Renderer renderer_create() {
     renderer.clear = protomatter_clear;
     renderer.draw_pixel = protomatter_draw_pixel;
     renderer.draw_rect = protomatter_draw_rect;
+    renderer.draw_circle = protomatter_draw_circle;
     renderer.present = protomatter_present;
     renderer.cleanup = protomatter_cleanup;
     return renderer;

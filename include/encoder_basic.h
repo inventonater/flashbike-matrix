@@ -13,7 +13,7 @@
 #define SS_SWITCH        24
 #define SS_NEOPIX        6
 
-#define MAX_ENCODERS 5
+#define MAX_ENCODERS 0
 int seesaw_addrs[] = {0x36, 0x37, 0x38, 0x39, 0x3A};
 // int colors[] = {0xff0000, 0x00ff00, 0x0000ff, 0xff00ff, 0xffff00};
 

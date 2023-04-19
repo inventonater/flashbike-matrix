@@ -20,18 +20,15 @@
 // uint8_t latchPin = 0;
 // uint8_t oePin = 1;
 
-// Adafruit_Protomatter matrix(
-//         WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
-//         clockPin, latchPin, oePin, true);
-
 uint8_t rgbPins[]  = {7, 8, 9, 10, 11, 12};
 uint8_t addrPins[] = {17, 18, 19, 20};
 uint8_t clockPin   = 14;
 uint8_t latchPin   = 15;
 uint8_t oePin      = 16;
 
-Adafruit_Protomatter matrix(
-  64, 4, 1, rgbPins, 4, addrPins, clockPin, latchPin, oePin, false);
+uint8_t bitDepth = 5;
+
+Adafruit_Protomatter matrix(WIDTH, bitDepth, 1, rgbPins, sizeof(addrPins), addrPins, clockPin, latchPin, oePin, true);
 
 #define TRAIL_LENGTH 40
 #define N_SPOTS 4
@@ -201,8 +198,8 @@ void drawBikes() {
         Bike *bike = &bikes[i];
 
         for (int trailIndex = 0; trailIndex < TRAIL_LENGTH; trailIndex++) {
-            double pulse = 1 + sin((millis() + trailIndex * 100) / 100.0) / 2;
-            uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH * pulse;
+            // draw trail with gamma correction but no pulse effect 
+            uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH;
             uint8_t val = remap(lerp, 3, 16, 160);
             color_t c = matrix.colorHSV(bike->hue, 255, val);
             pos_t pos = getTrailIndexPos(bike, trailIndex);
@@ -290,6 +287,10 @@ void drawSpot(Spot *pSpot) {
 }
 
 void setup(void) {
+    Serial.begin(115200);
+    while (!Serial) delay(10);
+
+    Serial.printf("wtf");
     ProtomatterStatus status = matrix.begin();
     Serial.printf("Protomatter begin() status: %d\n", status);
 

@@ -6,15 +6,24 @@
 #define WIDTH   64 // Matrix width (pixels)
 #define MAX_FPS 40 // Maximum redraw rate, frames/second
 
-uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
-uint8_t addrPins[] = {A5, A4, A3, A2};
-uint8_t clockPin = 13;
-uint8_t latchPin = 0;
-uint8_t oePin = 1;
+// uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
+// uint8_t addrPins[] = {A5, A4, A3, A2};
+// uint8_t clockPin = 13;
+// uint8_t latchPin = 0;
+// uint8_t oePin = 1;
 
-Adafruit_Protomatter matrix(
-        WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
-        clockPin, latchPin, oePin, true);
+// Adafruit_Protomatter matrix(
+//         WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
+//         clockPin, latchPin, oePin, true);
+
+uint8_t rgbPins[]  = {7, 8, 9, 10, 11, 12};
+uint8_t addrPins[] = {17, 18, 19, 20};
+uint8_t clockPin   = 14;
+uint8_t latchPin   = 15;
+uint8_t oePin      = 16;
+
+Adafruit_Protomatter matrix(WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins, clockPin, latchPin, oePin, true);
+
 
 void initDisplay() {
   matrix.begin();
