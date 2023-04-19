@@ -1,23 +1,37 @@
 #include <Arduino.h>
-#include <Wire.h>                 // For I2C communication
-#include <Adafruit_Protomatter.h> // For RGB matrix
+#include <Wire.h>                 
 #include <encoder_basic.h>
 #include <util.h>
 #include <halleffect.h>
+#include <Adafruit_Protomatter.h>
+
+// #include "game.h"
+// #include "system.h"
+// #include "renderer.h"
+// #include "util.h"
 
 #define HEIGHT  32 // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 #define WIDTH   64 // Matrix width (pixels)
 #define MAX_FPS 40 // Maximum redraw rate, frames/second
 
-uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
-uint8_t addrPins[] = {A5, A4, A3, A2};
-uint8_t clockPin = 13;
-uint8_t latchPin = 0;
-uint8_t oePin = 1;
+// uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
+// uint8_t addrPins[] = {A5, A4, A3, A2};
+// uint8_t clockPin = 13;
+// uint8_t latchPin = 0;
+// uint8_t oePin = 1;
+
+// Adafruit_Protomatter matrix(
+//         WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
+//         clockPin, latchPin, oePin, true);
+
+uint8_t rgbPins[]  = {7, 8, 9, 10, 11, 12};
+uint8_t addrPins[] = {17, 18, 19, 20};
+uint8_t clockPin   = 14;
+uint8_t latchPin   = 15;
+uint8_t oePin      = 16;
 
 Adafruit_Protomatter matrix(
-        WIDTH, 4, 1, rgbPins, sizeof(addrPins), addrPins,
-        clockPin, latchPin, oePin, true);
+  64, 4, 1, rgbPins, 4, addrPins, clockPin, latchPin, oePin, false);
 
 #define TRAIL_LENGTH 40
 #define N_SPOTS 4
@@ -276,7 +290,6 @@ void drawSpot(Spot *pSpot) {
 }
 
 void setup(void) {
-    Serial.begin(115200);
     ProtomatterStatus status = matrix.begin();
     Serial.printf("Protomatter begin() status: %d\n", status);
 

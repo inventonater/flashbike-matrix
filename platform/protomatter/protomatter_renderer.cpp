@@ -21,9 +21,10 @@ uint8_t addrPins[] = {
     PIN_PROTOMATTER_ADDR_3
 };
 
-uint8_t clockPin = 13;
-uint8_t latchPin = 0;
-uint8_t oePin = 1;
+uint8_t clockPin = PIN_PROTOMATTER_CLOCK; // 13;
+uint8_t latchPin = PIN_PROTOMATTER_LATCH; // 0;
+uint8_t oePin = PIN_PROTOMATTER_OE // 1;
+
 bool doubleBuffer = true;
 
 #define HEIGHT  32 // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
