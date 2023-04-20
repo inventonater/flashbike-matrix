@@ -4,6 +4,8 @@
 #include <util.h>
 #include <halleffect.h>
 #include <Adafruit_Protomatter.h>
+#include <WiiChuck.h>
+Accessory nunchuck;
 
 // #include "game.h"
 // #include "system.h"
@@ -297,6 +299,11 @@ void setup(void) {
     ProtomatterStatus status = matrix.begin();
     Serial.printf("Protomatter begin() status: %d\n", status);
 
+	nunchuck.begin();
+	if (nunchuck.type == Unknown) {
+		nunchuck.type = NUNCHUCK;
+	}
+
     for (int i = 0; i < N_BIKES; i++) {
         initBike(&bikes[i], hueForBikeIndex(i));
     }
@@ -311,9 +318,30 @@ void setup(void) {
     encoder_setup();
 }
 
-void loop() {
-    encoder_loop();
+void system_handle_input_events() {
+    nunchuck.readData();    // Read inputs and update maps
 
+    Serial.print("X: "); Serial.print(nunchuck.getAccelX());
+    Serial.print(" \tY: "); Serial.print(nunchuck.getAccelY()); 
+    Serial.print(" \tZ: "); Serial.println(nunchuck.getAccelZ()); 
+
+    Serial.print("Joy: ("); 
+    Serial.print(nunchuck.getJoyX());
+    Serial.print(", "); 
+    Serial.print(nunchuck.getJoyY());
+    Serial.println(")");
+
+    Serial.print("Button: "); 
+    if (nunchuck.getButtonZ()) Serial.print(" Z "); 
+    if (nunchuck.getButtonC()) Serial.print(" C "); 
+
+    Serial.println();
+}
+
+void loop() {
+    system_handle_input_events();
+
+    encoder_loop();
     uint32_t t = micros();
     if (shouldWait(t)) return;
     uint32_t dt = t - prevTime;
@@ -367,3 +395,4 @@ void loop() {
     matrix.show();
     prevTime = t;
 }
+
