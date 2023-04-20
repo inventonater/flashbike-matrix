@@ -37,7 +37,11 @@ Adafruit_Protomatter matrix(
         clockPin, latchPin, oePin, doubleBuffer);
 
 static void protomatter_init() {
-    matrix.begin();
+    Serial.printf("Protomatter...1");
+    while (!Serial) delay(10);
+    Serial.printf("Protomatter...2");
+    ProtomatterStatus status = matrix.begin();
+    Serial.printf("Protomatter begin() status: %d\n", status);
 }
 
 static void protomatter_clear() {

@@ -202,11 +202,6 @@ uint32_t remap(uint32_t val, uint32_t p = 3, uint32_t _min = 0, double _max = 25
     return min((_max - _min) * pow(val / (_max - _min), p) + _min, _max);
 }
 
-void drawCircle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
-    matrix.fillCircle(x, y, radius, color);
-    matrix.drawCircle(x, y, radius, borderColor);
-}
-
 void drawBikes() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
@@ -278,6 +273,11 @@ void bikeDied(Bike *pBike) {
     Serial.printf("Bike died at %d, %d)\n", pBike->pos[pBike->trailIndex].x, pBike->pos[pBike->trailIndex].y);
     // hueForBikeIndex(pBike - bikes)
     initBike(pBike, randomHue());
+}
+
+static void drawCircle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
+    matrix.fillCircle(x, y, radius, color);
+    matrix.drawCircle(x, y, radius, borderColor);
 }
 
 void drawSpot(Spot *pSpot) {

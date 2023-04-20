@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "system.h"
 #include "renderer.h"
 #include "game.h"
@@ -89,6 +90,8 @@ void move_snake(GameState *game_state, int dx, int dy) {
 }
 
 uint32_t begin(System system, Renderer renderer) {
+    Serial.println("Snake game started");
+
     renderer.init();
 
     srand(time(NULL));
@@ -102,6 +105,8 @@ uint32_t begin(System system, Renderer renderer) {
     uint32_t last_move_time = system.get_millis();
 
     while (!quit) {
+        Serial.println(system.get_millis());
+
         system.handle_input_events(&quit, &dx, &dy);
 
         if (!game_state.game_over) {
