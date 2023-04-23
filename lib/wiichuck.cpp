@@ -12,13 +12,15 @@ void pcaselect(uint8_t i) {
 }
 
 // Wiichuck nunchuck[4];
-Accessory nunchucks[4];
+Accessory chucks[4];
 
 void setup() {
+  Wire.begin();
 	Serial.begin(115200);
+  
   for (int i = 0; i < 4; i++) {
     pcaselect(i);
-    auto nunchuck = nunchucks[i];
+    auto nunchuck = chucks[i];
     nunchuck.begin();
     if (nunchuck.type == Unknown) {
 		  nunchuck.type = NUNCHUCK;
@@ -29,7 +31,7 @@ void setup() {
 void loop() {
   for (int i = 0; i < 4; i++) {
     pcaselect(i);
-    auto nunchuck = nunchucks[i];
+    auto nunchuck = chucks[i];
 
     nunchuck.readData();    // Read inputs and update maps
     Serial.print("Nunchuck "); 

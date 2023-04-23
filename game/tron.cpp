@@ -1,19 +1,20 @@
 #include <Arduino.h>
-#include <Wire.h>                 
-#include <encoder_basic.h>
-#include <util.h>
-#include <halleffect.h>
+#include <Wire.h>
+#include "../include/input_encoder.h"
+#include "../include/input_wiichuck.h"
+#include "../include/util.h"
+#include "../include/halleffect.h"
+#include "../.pio/libdeps/adafruit_feather_m4_can/Adafruit Protomatter/src/core.h"
 #include <Adafruit_Protomatter.h>
 #include <WiiChuck.h>
-Accessory nunchuck;
 
 // #include "game.h"
 // #include "system.h"
 // #include "renderer.h"
 // #include "util.h"
 
-#define HEIGHT  32 // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
-#define WIDTH   64 // Matrix width (pixels)
+#define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
+#define WIDTH 64   // Matrix width (pixels)
 #define MAX_FPS 40 // Maximum redraw rate, frames/second
 
 // uint8_t rgbPins[] = {6, 5, 9, 11, 10, 12};
@@ -40,41 +41,46 @@ uint8_t addrPins[] = {
     PIN_PROTOMATTER_ADDR_0,
     PIN_PROTOMATTER_ADDR_1,
     PIN_PROTOMATTER_ADDR_2,
-    PIN_PROTOMATTER_ADDR_3
-};
+    PIN_PROTOMATTER_ADDR_3};
 
 uint8_t clockPin = PIN_PROTOMATTER_CLOCK; // 13;
 uint8_t latchPin = PIN_PROTOMATTER_LATCH; // 0;
-uint8_t oePin = PIN_PROTOMATTER_OE; // 1;
+uint8_t oePin = PIN_PROTOMATTER_OE;       // 1;
 uint8_t bitDepth = 5;
 
 Adafruit_Protomatter matrix(WIDTH, bitDepth, 1, rgbPins, sizeof(addrPins), addrPins, clockPin, latchPin, oePin, true);
 
+#define RESPAWN_TIME
 #define TRAIL_LENGTH 40
-#define N_SPOTS 4
-#define N_BIKES 2
+#define N_SPOTS 0
+#define N_BIKES 4
+
 typedef int16_t coord_t;
 typedef int16_t color_t;
 
-struct pos_t {
+struct pos_t
+{
     coord_t x;
     coord_t y;
 };
 
-struct Bike {
+struct Bike
+{
     pos_t pos[TRAIL_LENGTH];
     pos_t dir;
     uint8_t speed;
+    uint8_t lives;
     uint32_t nextMoveTime;
+    uint32_t diedTime;
     uint8_t trailIndex;
     uint16_t hue;
     uint32_t lastEncoderPosition;
 };
 
 Bike bikes[N_BIKES];
-int num_humans = 0;
 
-struct Spot {
+struct Spot
+{
     pos_t pos;
     uint16_t hue;
     uint8_t radius;
@@ -86,7 +92,8 @@ Spot spots[N_SPOTS];
 
 uint32_t prevTime = 0; // Used for frames-per-second throttle
 
-uint16_t withBrightnessColor565(uint16_t color, double brightness) {
+uint16_t withBrightnessColor565(uint16_t color, double brightness)
+{
     uint8_t r = (color >> 11) & 0x1F;
     uint8_t g = (color >> 5) & 0x3F;
     uint8_t b = color & 0x1F;
@@ -96,36 +103,47 @@ uint16_t withBrightnessColor565(uint16_t color, double brightness) {
     return matrix.color565(r, g, b);
 }
 
-pos_t randomPosition() {
+pos_t randomPosition()
+{
     pos_t pos;
     pos.x = random(0, WIDTH);
     pos.y = random(0, HEIGHT);
     return pos;
 }
 
-pos_t randomDirection() {
+pos_t randomDirection()
+{
     pos_t dir;
-    if (random(0, 2) == 0) {
+    if (random(0, 2) == 0)
+    {
         dir.x = 0;
         dir.y = random(0, 2) * 2 - 1;
-    } else {
+    }
+    else
+    {
         dir.x = random(0, 2) * 2 - 1;
         dir.y = 0;
     }
     return dir;
 }
 
-bool isCollision(Bike *bike, int distance = 0) {
+bool isCollision(Bike *bike, int distance = 0)
+{
     pos_t pos = bike->pos[bike->trailIndex];
 
-    while (1 + distance--) {
-        for (int i = 0; i < N_BIKES; i++) {
+    while (1 + distance--)
+    {
+        for (int i = 0; i < N_BIKES; i++)
+        {
             Bike *other = &bikes[i];
 
-            for (int trailIndex = 0; trailIndex < TRAIL_LENGTH; trailIndex++) {
+            for (int trailIndex = 0; trailIndex < TRAIL_LENGTH; trailIndex++)
+            {
                 pos_t trailPos = other->pos[trailIndex];
-                if (pos.x == trailPos.x && pos.y == trailPos.y) {
-                    if (trailIndex != other->trailIndex) {
+                if (pos.x == trailPos.x && pos.y == trailPos.y)
+                {
+                    if (trailIndex != other->trailIndex)
+                    {
                         return true;
                     }
                 }
@@ -133,7 +151,8 @@ bool isCollision(Bike *bike, int distance = 0) {
         }
 
         // check if bike is out of bounds
-        if (pos.x < 0 || pos.x >= WIDTH || pos.y < 0 || pos.y >= HEIGHT) {
+        if (pos.x < 0 || pos.x >= WIDTH || pos.y < 0 || pos.y >= HEIGHT)
+        {
             return true;
         }
 
@@ -143,40 +162,89 @@ bool isCollision(Bike *bike, int distance = 0) {
     return false;
 }
 
-bool ai_shouldChangeDirection(Bike *bike) {
+bool ai_shouldChangeDirection(Bike *bike)
+{
     return random(20) == 0 || isCollision(bike, 10);
 }
 
-void ai_setRandomDirection(Bike *bike) {
+void ai_setRandomDirection(Bike *bike)
+{
     pos_t dir = bike->dir;
-    if (dir.x == 0) {
+    if (dir.x == 0)
+    {
         bike->dir.x = random(0, 2) * 2 - 1;
         bike->dir.y = 0;
-        if (isCollision(bike, 1)) {
+        if (isCollision(bike, 1))
+        {
             bike->dir.x = -bike->dir.x;
         }
-    } else {
+    }
+    else
+    {
         bike->dir.x = 0;
         bike->dir.y = random(0, 2) * 2 - 1;
-        if (isCollision(bike, 1)) {
+        if (isCollision(bike, 1))
+        {
             bike->dir.y = -bike->dir.y;
         }
     }
 }
 
-void bike_rotateDirection(Bike *bike, int8_t rotation) {
-    if (rotation == 0) return;
+bool dir_isOpposite(pos_t dir1, pos_t dir2)
+{
+    if(dir1.x == dir2.x && dir1.y == -dir2.y) return true;
+    if(dir1.x == -dir2.x && dir1.y == dir2.y) return true;
+    return false;
+}
+
+void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y)
+{
+    pos_t dir = {-x, y};
+    if(dir.x == 0 && dir.y == 0) return;
+
+    int8_t tmpX = dir.x;
+    switch (player_index) {
+        case 1: // Rotate 90 degrees
+            dir.x = dir.y;
+            dir.y = -tmpX;
+            break;
+        case 2: // Rotate 180 degrees
+            dir.x = -dir.x;
+            dir.y = -dir.y;
+            break;
+        case 3: // Rotate 270 degrees (or -90 degrees)
+            dir.x = -dir.y;
+            dir.y = tmpX;
+            break;
+        default:
+            break;
+    }
+
+    if(bike->dir.x != dir.x || bike->dir.y != dir.y){
+        Serial.printf("Joy: %d %d\n", dir.x, dir.y);
+        if(!dir_isOpposite(dir, bike->dir)) bike->dir = dir;
+    }
+}
+
+void bike_rotateDirection(Bike *bike, int8_t rotation)
+{
+    if (rotation == 0)
+        return;
     rotation = rotation > 0 ? -1 : 1;
-    if (bike->dir.x == 0) {
+    if (bike->dir.x == 0)
+    {
         bike->dir.x = bike->dir.y * rotation;
         bike->dir.y = 0;
-    } else {
+    }
+    else
+    {
         bike->dir.y = -bike->dir.x * rotation;
         bike->dir.x = 0;
     }
 }
 
-void moveBike(Bike *bike) {
+void moveBike(Bike *bike)
+{
     pos_t pos = bike->pos[bike->trailIndex];
     pos.x += bike->dir.x;
     pos.y += bike->dir.y;
@@ -184,32 +252,38 @@ void moveBike(Bike *bike) {
     bike->pos[bike->trailIndex] = pos;
 }
 
-
-pos_t getTrailIndexPos(Bike *bike, uint8_t trailIndex) {
+pos_t getTrailIndexPos(Bike *bike, uint8_t trailIndex)
+{
     return bike->pos[(bike->trailIndex + trailIndex) % TRAIL_LENGTH];
 }
 
 // remap value logarithmically
-uint8_t logmap(uint8_t val) {
+uint8_t logmap(uint8_t val)
+{
     return 255 * log(val + 1) / log(256);
 }
 
 // remap value exponentially
-uint8_t expmap(uint8_t val) {
+uint8_t expmap(uint8_t val)
+{
     return 255 * (exp(val / 255.0) - 1) / (exp(1) - 1);
 }
 
 // remap value cubically
-uint32_t remap(uint32_t val, uint32_t p = 3, uint32_t _min = 0, double _max = 255) {
+uint32_t remap(uint32_t val, uint32_t p = 3, uint32_t _min = 0, double _max = 255)
+{
     return min((_max - _min) * pow(val / (_max - _min), p) + _min, _max);
 }
 
-void drawBikes() {
-    for (int i = 0; i < N_BIKES; i++) {
+void drawBikes()
+{
+    for (int i = 0; i < N_BIKES; i++)
+    {
         Bike *bike = &bikes[i];
 
-        for (int trailIndex = 0; trailIndex < TRAIL_LENGTH; trailIndex++) {
-            // draw trail with gamma correction but no pulse effect 
+        for (int trailIndex = 0; trailIndex < TRAIL_LENGTH; trailIndex++)
+        {
+            // draw trail with gamma correction but no pulse effect
             uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH;
             uint8_t val = remap(lerp, 3, 16, 160);
             color_t c = matrix.colorHSV(bike->hue, 255, val);
@@ -219,45 +293,55 @@ void drawBikes() {
     }
 }
 
-void err(int x) {
+void err(int x)
+{
     uint8_t i;
-    pinMode(LED_BUILTIN, OUTPUT);       // Using onboard LED
-    for (i = 1;; i++) {                     // Loop forever...
+    pinMode(LED_BUILTIN, OUTPUT); // Using onboard LED
+    for (i = 1;; i++)
+    {                                     // Loop forever...
         digitalWrite(LED_BUILTIN, i & 1); // LED on/off blink to alert user
         delay(x);
     }
 }
 
-void initBike(Bike *pBike, uint16_t hue) {
+void initBike(Bike *pBike, uint16_t hue)
+{
     pBike->trailIndex = 0;
     pBike->pos[0] = randomPosition();
     pBike->dir = randomDirection();
     pBike->hue = hue;
-    pBike->speed = random(6, 20);
+    pBike->speed = 6; //random(6, 20);
     pBike->nextMoveTime = millis();
+    pBike->diedTime = secToMillis(-5);
 }
 
-uint16_t hueForBikeIndex(int i) {
-    return (i * 65535 / N_BIKES); //32768
+uint16_t hueForBikeIndex(int i)
+{
+    return (i * 65535 / N_BIKES); // 32768
 }
 
 // random hue
-uint16_t randomHue() {
+uint16_t randomHue()
+{
     return random(65535);
 }
 
 // random hue that is not too close to any other hue
-uint16_t randomHueNotTooClose() {
+uint16_t randomHueNotTooClose()
+{
     uint16_t hue = randomHue();
-    for (int i = 0; i < N_BIKES; i++) {
-        if (abs(hue - bikes[i].hue) < 65535 / N_BIKES / 2) {
+    for (int i = 0; i < N_BIKES; i++)
+    {
+        if (abs(hue - bikes[i].hue) < 65535 / N_BIKES / 2)
+        {
             return randomHueNotTooClose();
         }
     }
     return hue;
 }
 
-void initSpot(Spot *pSpot) {
+void initSpot(Spot *pSpot)
+{
     pSpot->pos = randomPosition();
     pSpot->hue = randomHue();
     pSpot->radius = random(1, 4);
@@ -265,50 +349,54 @@ void initSpot(Spot *pSpot) {
     pSpot->current = 0;
 }
 
-bool shouldWait(uint32_t t) {
+bool shouldWait(uint32_t t)
+{
     long delayMicros = 1000000L / MAX_FPS;
-    if (t - prevTime < delayMicros) return true;
+    if (t - prevTime < delayMicros)
+        return true;
     return false;
 }
 
-void bikeDied(Bike *pBike) {
+void bikeDied(Bike *pBike)
+{
+    pBike->diedTime = millis();
+    pBike->lives--;
     Serial.printf("Bike died at %d, %d)\n", pBike->pos[pBike->trailIndex].x, pBike->pos[pBike->trailIndex].y);
-    // hueForBikeIndex(pBike - bikes)
-    initBike(pBike, randomHue());
+    initBike(pBike, pBike->hue);
 }
 
-static void drawCircle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
+static void drawCircle(int x, int y, int radius, uint16_t color, uint16_t borderColor)
+{
     matrix.fillCircle(x, y, radius, color);
     matrix.drawCircle(x, y, radius, borderColor);
 }
 
-void drawSpot(Spot *pSpot) {
-//    uint8_t val = remap(pSpot->current, 3, 16, 255);
+void drawSpot(Spot *pSpot)
+{
+    //    uint8_t val = remap(pSpot->current, 3, 16, 255);
     // fade in and out with a sine wave
-    uint8_t val = 255 * (sin((double) pSpot->current / (double) pSpot->phaseMicros * 2 * PI) + 1) / 2;
+    uint8_t val = 255 * (sin((double)pSpot->current / (double)pSpot->phaseMicros * 2 * PI) + 1) / 2;
 
     color_t c = matrix.colorHSV(pSpot->hue, 255, val);
     drawCircle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
 }
 
-void setup(void) {
+void setup(void)
+{
     Serial.begin(115200);
-    while (!Serial) delay(10);
+    while (!Serial)
+        delay(10);
 
-    Serial.printf("wtf");
     ProtomatterStatus status = matrix.begin();
     Serial.printf("Protomatter begin() status: %d\n", status);
 
-	nunchuck.begin();
-	if (nunchuck.type == Unknown) {
-		nunchuck.type = NUNCHUCK;
-	}
-
-    for (int i = 0; i < N_BIKES; i++) {
+    for (int8_t i = 0; i < N_BIKES; i++)
+    {
         initBike(&bikes[i], hueForBikeIndex(i));
     }
 
-    for (int i = 0; i < N_SPOTS; i++) {
+    for (int8_t i = 0; i < N_SPOTS; i++)
+    {
         initSpot(&spots[i]);
     }
 
@@ -316,75 +404,89 @@ void setup(void) {
     Serial.printf("%d total bikes\n", N_BIKES);
 
     encoder_setup();
+    chuck_setup();
 }
 
-void system_handle_input_events() {
-    nunchuck.readData();    // Read inputs and update maps
-
-    Serial.print("X: "); Serial.print(nunchuck.getAccelX());
-    Serial.print(" \tY: "); Serial.print(nunchuck.getAccelY()); 
-    Serial.print(" \tZ: "); Serial.println(nunchuck.getAccelZ()); 
-
-    Serial.print("Joy: ("); 
-    Serial.print(nunchuck.getJoyX());
-    Serial.print(", "); 
-    Serial.print(nunchuck.getJoyY());
-    Serial.println(")");
-
-    Serial.print("Button: "); 
-    if (nunchuck.getButtonZ()) Serial.print(" Z "); 
-    if (nunchuck.getButtonC()) Serial.print(" C "); 
-
-    Serial.println();
+bool bike_isRespawning(Bike *pBike)
+{
+    return millis() - pBike->diedTime < secToMillis(RESPAWN_TIME);
 }
 
-void loop() {
-    system_handle_input_events();
+bool isChuckActive(int i)
+{
+    return i < N_WIICHUCKS && chucks[i].active;
+}
 
+bool isEncoderActive(int i)
+{
+    return i < N_ENCODERS && encoders[i].active;
+}
+
+void loop()
+{
+    chuck_loop();
     encoder_loop();
-    uint32_t t = micros();
-    if (shouldWait(t)) return;
-    uint32_t dt = t - prevTime;
-
-    matrix.fillScreen(0x0);
-    for (int i = 0; i < N_BIKES; i++) {
-        Bike *bike = &bikes[i];
-
-        while (num_humans < num_active_encoders) {
-            bike->lastEncoderPosition = encoders[active_encoders[i]].encoder_position;
-            num_humans++;
+    for (int i = 0; i < N_BIKES; i++)
+    {
+        if (isChuckActive(1))
+        {
+            bike_setJoyDirection(i, bike, chucks[i].x, chucks[i].y);
         }
 
-        if (millis() < bike->nextMoveTime) {
+        if (isEncoderActive(i))
+        {
+            auto newEncoderPosition = encoders[i].encoder_position;
+            auto rotation = newEncoderPosition - bike->lastEncoderPosition;
+            bike_rotateDirection(bike, rotation);
+            bike->lastEncoderPosition = newEncoderPosition;
+        }
+    }
+
+    uint32_t t = micros();
+    if (shouldWait(t))
+        return;
+    uint32_t dt = t - prevTime;
+    // Serial.printf("time %d\n", t);
+
+    matrix.fillScreen(0x0);
+    for (int i = 0; i < N_BIKES; i++)
+    {
+        Bike *bike = &bikes[i];
+
+        if(bike->lives < 1 || bike_isRespawning(bike))
+        {
+            continue;
+        }
+
+        if (millis() < bike->nextMoveTime)
+        {
             continue;
         }
         bike->nextMoveTime += secToMillis(1) / bike->speed;
 
-        if (i < num_active_encoders) {
-            auto newEncoderPosition = encoders[active_encoders[i]].encoder_position;
-            auto rotation = newEncoderPosition - bike->lastEncoderPosition;
-            bike_rotateDirection(bike, rotation);
-            bike->lastEncoderPosition = newEncoderPosition;
-        } else {
-            if (ai_shouldChangeDirection(bike)) {
-                ai_setRandomDirection(bike);
-            }
+        if (!isChuckActive(i) && !isEncoderActive(i) && ai_shouldChangeDirection(bike))
+        {
+            ai_setRandomDirection(bike);
         }
 
         moveBike(bike);
     }
 
-    for (int i = 0; i < N_BIKES; i++) {
+    for (int i = 0; i < N_BIKES; i++)
+    {
         Bike *bike = &bikes[i];
-        if (isCollision(bike, 0)) {
+        if (isCollision(bike, 0))
+        {
             bikeDied(bike);
         }
     }
 
-    for (int i = 0; i < N_SPOTS; i++) {
+    for (int i = 0; i < N_SPOTS; i++)
+    {
         Spot *spot = &spots[i];
         spot->current += dt;
-        if (spot->current > spot->phaseMicros) {
+        if (spot->current > spot->phaseMicros)
+        {
             spot->current = 0;
             initSpot(spot);
         }
@@ -395,4 +497,3 @@ void loop() {
     matrix.show();
     prevTime = t;
 }
-

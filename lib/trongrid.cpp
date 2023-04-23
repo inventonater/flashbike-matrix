@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>                 
-#include <encoder_basic.h>
+#include <input_encoder.h>
 #include <util.h>
 #include <halleffect.h>
 #include <Adafruit_Protomatter.h>
