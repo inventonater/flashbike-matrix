@@ -7,7 +7,7 @@
 typedef struct Controller
 {
     int x, y;
-    int32_t encoder_position;
+    int32_t position;
     bool active;
 } Controller;
 

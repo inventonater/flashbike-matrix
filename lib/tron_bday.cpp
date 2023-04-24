@@ -292,14 +292,14 @@ void initSpot(Spot *pSpot)
     pSpot->current = 0;
 }
 
-bool shouldWait(uint32_t currentMillis)
+bool waitForNextFrame(uint32_t currentMillis)
 {
     if (currentMillis - prevTimeMillis < (1000 / MAX_FPS))
         return true;
     return false;
 }
 
-void bikeDied(Bike *pBike)
+void bike_died(Bike *pBike)
 {
     pBike->diedTime = millis();
     pBike->lives = pBike->lives - 1;
@@ -382,7 +382,7 @@ void loop()
 
         if (isEncoderActive(i))
         {
-            auto newEncoderPosition = encoders[i].encoder_position;
+            auto newEncoderPosition = encoders[i].position;
             auto rotation = newEncoderPosition - bike->lastEncoderPosition;
             bike_rotateDirection(bike, rotation);
             bike->lastEncoderPosition = newEncoderPosition;
@@ -390,7 +390,7 @@ void loop()
     }
 
     uint32_t currentMillis = millis();
-    if (shouldWait(currentMillis))
+    if (waitForNextFrame(currentMillis))
         return;
     uint32_t dtMillis = currentMillis - prevTimeMillis;
     // Serial.printf("time %d\n", t);
@@ -431,7 +431,7 @@ void loop()
         Bike *bike = &bikes[i];
         if (isCollision(bike, 0))
         {
-            bikeDied(bike);
+            bike_died(bike);
             chucks[i].active = 0;
         }
     }

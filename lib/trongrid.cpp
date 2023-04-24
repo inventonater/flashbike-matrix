@@ -265,13 +265,13 @@ void initSpot(Spot *pSpot) {
     pSpot->current = 0;
 }
 
-bool shouldWait(uint32_t t) {
+bool waitForNextFrame(uint32_t currentMillis) {
     long delayMicros = 1000000L / MAX_FPS;
-    if (t - prevTime < delayMicros) return true;
+    if (currentMillis - prevTime < delayMicros) return true;
     return false;
 }
 
-void bikeDied(Bike *pBike) {
+void bike_died(Bike *pBike) {
     Serial.printf("Bike died at %d, %d)\n", pBike->pos[pBike->trailIndex].x, pBike->pos[pBike->trailIndex].y);
     // hueForBikeIndex(pBike - bikes)
     initBike(pBike, color_randomHue());
@@ -313,7 +313,7 @@ void loop() {
     encoder_loop();
 
     uint32_t t = micros();
-    if (shouldWait(t)) return;
+    if (waitForNextFrame(t)) return;
     uint32_t dt = t - prevTime;
 
     matrix.fillScreen(0x0);
@@ -321,7 +321,7 @@ void loop() {
         Bike *bike = &bikes[i];
 
         while (num_humans < num_active_encoders) {
-            bike->lastEncoderPosition = encoders[active_encoders[i]].encoder_position;
+            bike->lastEncoderPosition = encoders[active_encoders[i]].position;
             num_humans++;
         }
 
@@ -331,7 +331,7 @@ void loop() {
         bike->nextMoveTime += secToMillis(1) / bike->speed;
 
         if (i < num_active_encoders) {
-            auto newEncoderPosition = encoders[active_encoders[i]].encoder_position;
+            auto newEncoderPosition = encoders[active_encoders[i]].position;
             auto rotation = newEncoderPosition - bike->lastEncoderPosition;
             bike_rotateDirection(bike, rotation);
             bike->lastEncoderPosition = newEncoderPosition;
@@ -347,7 +347,7 @@ void loop() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
         if (isCollision(bike, 0)) {
-            bikeDied(bike);
+            bike_died(bike);
         }
     }
 

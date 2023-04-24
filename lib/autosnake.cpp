@@ -259,13 +259,13 @@ void setup(void) {
     Serial.printf("%d total bikes\n", N_BIKES);
 }
 
-bool shouldWait(uint32_t t) {
+bool waitForNextFrame(uint32_t currentMillis) {
     long delayMicros = 1000000L / MAX_FPS;
-    if (t - prevTime < delayMicros) return true;
+    if (currentMillis - prevTime < delayMicros) return true;
     return false;
 }
 
-void bikeDied(Bike *pBike) {
+void bike_died(Bike *pBike) {
     Serial.printf("Bike died at %d, %d)\n", pBike->pos[pBike->trailIndex].x, pBike->pos[pBike->trailIndex].y);
     // hueForBikeIndex(pBike - bikes)
     initBike(pBike, color_randomHue());
@@ -287,7 +287,7 @@ void loop() {
     // things like gravity appear constant in the simulation.
 
     uint32_t t = micros();
-    if (shouldWait(t)) return;
+    if (waitForNextFrame(t)) return;
     uint32_t dt = t - prevTime;
 
     matrix.fillScreen(0x0);
@@ -302,7 +302,7 @@ void loop() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
         if (isCollision(bike, 0)) {
-            bikeDied(bike);
+            bike_died(bike);
         }
     }
 
