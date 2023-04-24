@@ -45,7 +45,7 @@ struct Spot {
     pos_t pos;
     uint16_t hue;
     uint8_t radius;
-    uint32_t phaseMicros;
+    uint32_t phaseMillis;
     uint32_t current;
 };
 
@@ -213,21 +213,21 @@ void initBike(Bike *pBike, uint16_t hue) {
     pBike->hue = hue;
 }
 
-uint16_t hueForBikeIndex(int i) {
+uint16_t color_hueForBikeIndex(int i, int range) {
     return (i * 65535 / N_BIKES); //32768
 }
 
 // random hue
-uint16_t randomHue() {
+uint16_t color_randomHue() {
     return random(65535);
 }
 
 // random hue that is not too close to any other hue
-uint16_t randomHueNotTooClose() {
-    uint16_t hue = randomHue();
+uint16_t color_randomHueNotTooClose() {
+    uint16_t hue = color_randomHue();
     for (int i = 0; i < N_BIKES; i++) {
         if (abs(hue - bikes[i].hue) < 65535 / N_BIKES / 2) {
-            return randomHueNotTooClose();
+            return color_randomHueNotTooClose();
         }
     }
     return hue;
@@ -235,9 +235,9 @@ uint16_t randomHueNotTooClose() {
 
 void initSpot(Spot *pSpot) {
     pSpot->pos = randomPosition();
-    pSpot->hue = randomHue();
+    pSpot->hue = color_randomHue();
     pSpot->radius = random(1, 4);
-    pSpot->phaseMicros = secToMicros(random(1, 4));
+    pSpot->phaseMillis = secToMicros(random(1, 4));
     pSpot->current = 0;
 }
 
@@ -248,7 +248,7 @@ void setup(void) {
 
     initColors();
     for (int i = 0; i < N_BIKES; i++) {
-        initBike(&bikes[i], hueForBikeIndex(i));
+        initBike(&bikes[i], color_hueForBikeIndex(i, N_BIKES));
     }
     
     for (int i = 0; i < N_SPOTS; i++) {
@@ -268,14 +268,14 @@ bool shouldWait(uint32_t t) {
 void bikeDied(Bike *pBike) {
     Serial.printf("Bike died at %d, %d)\n", pBike->pos[pBike->trailIndex].x, pBike->pos[pBike->trailIndex].y);
     // hueForBikeIndex(pBike - bikes)
-    initBike(pBike, randomHue());
+    initBike(pBike, color_randomHue());
 }
 
 void drawSpot(Spot *pSpot) {
 //    uint8_t val = remap(pSpot->current, 3, 16, 255);
 
     // fade in and out with a sine wave
-    uint8_t val = 255 * (sin((double)pSpot->current / (double)pSpot->phaseMicros * 2 * PI) + 1) / 2;
+    uint8_t val = 255 * (sin((double)pSpot->current / (double)pSpot->phaseMillis * 2 * PI) + 1) / 2;
 
     color_t c = matrix.colorHSV(pSpot->hue, 255, val);
     drawCircle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
@@ -309,7 +309,7 @@ void loop() {
     for (int i = 0; i < N_SPOTS; i++) {
         Spot *spot = &spots[i];
         spot->current += dt;
-        if (spot->current > spot->phaseMicros) {
+        if (spot->current > spot->phaseMillis) {
             spot->current = 0;
             initSpot(spot);
         }

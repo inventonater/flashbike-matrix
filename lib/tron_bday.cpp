@@ -1,11 +1,37 @@
-#include <util.h>
-#include <renderer.h>
-#include <system.h>
-#include <game.h>
+#include <Arduino.h>
+#include <Wire.h>
+#include "../include/input_encoder.h"
+#include "../include/input_wiichuck.h"
+#include "../include/util.h"
+#include "../include/halleffect.h"
+#include "../.pio/libdeps/adafruit_feather_m4_can/Adafruit Protomatter/src/core.h"
+#include <Adafruit_Protomatter.h>
+#include <WiiChuck.h>
 
 #define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 #define WIDTH 64   // Matrix width (pixels)
 #define MAX_FPS 40 // Maximum redraw rate, frames/second
+
+uint8_t rgbPins[] = {
+    PIN_PROTOMATTER_RGB_0,
+    PIN_PROTOMATTER_RGB_1,
+    PIN_PROTOMATTER_RGB_2,
+    PIN_PROTOMATTER_RGB_3,
+    PIN_PROTOMATTER_RGB_4,
+    PIN_PROTOMATTER_RGB_5,
+};
+uint8_t addrPins[] = {
+    PIN_PROTOMATTER_ADDR_0,
+    PIN_PROTOMATTER_ADDR_1,
+    PIN_PROTOMATTER_ADDR_2,
+    PIN_PROTOMATTER_ADDR_3};
+
+uint8_t clockPin = PIN_PROTOMATTER_CLOCK; // 13;
+uint8_t latchPin = PIN_PROTOMATTER_LATCH; // 0;
+uint8_t oePin = PIN_PROTOMATTER_OE;       // 1;
+uint8_t bitDepth = 5;
+
+Adafruit_Protomatter matrix(WIDTH, bitDepth, 1, rgbPins, sizeof(addrPins), addrPins, clockPin, latchPin, oePin, true);
 
 #define RESPAWN_TIME 4
 #define TRAIL_LENGTH 80
@@ -13,6 +39,7 @@
 #define N_BIKES 4
 
 typedef int16_t coord_t;
+typedef int16_t color_t;
 
 struct pos_t
 {
@@ -47,7 +74,6 @@ struct Spot
 Spot spots[N_SPOTS];
 
 uint32_t prevTimeMillis = 0; // Used for frames-per-second throttle
-bool pendingQuit = false;
 
 pos_t randomPosition()
 {
@@ -215,7 +241,7 @@ pos_t getTrailIndexPos(Bike *bike, uint8_t trailIndex)
     return bike->pos[(bike->trailIndex + trailIndex) % TRAIL_LENGTH];
 }
 
-void drawBikes(Renderer renderer)
+void drawBikes()
 {
     for (int i = 0; i < N_BIKES; i++)
     {
@@ -226,9 +252,9 @@ void drawBikes(Renderer renderer)
             // draw trail with gamma correction but no pulse effect
             uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH;
             uint8_t val = remap(lerp, 3, 16, 160);
-            color_t c = renderer.color_hsv(bike->hue, 255, val);
+            color_t c = matrix.colorHSV(bike->hue, 255, val);
             pos_t pos = getTrailIndexPos(bike, trailIndex);
-            renderer.draw_pixel(pos.x, pos.y, c);
+            matrix.drawPixel(pos.x, pos.y, c);
         }
     }
 }
@@ -288,18 +314,29 @@ void bikeDied(Bike *pBike)
     initBike(pBike, pBike->hue);
 }
 
-void drawSpot(Renderer renderer, Spot *pSpot)
+static void drawCircle(int x, int y, int radius, uint16_t color, uint16_t borderColor)
+{
+    matrix.fillCircle(x, y, radius, color);
+    matrix.drawCircle(x, y, radius, borderColor);
+}
+
+void drawSpot(Spot *pSpot)
 {
     //    uint8_t val = remap(pSpot->current, 3, 16, 255);
     // fade in and out with a sine wave
     uint8_t val = 255 * (sin((double)pSpot->current / (double)pSpot->phaseMillis * 2 * PI) + 1) / 2;
 
-    color_t c = renderer.color_hsv(pSpot->hue, 255, val);
-    renderer.draw_circle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
+    color_t c = matrix.colorHSV(pSpot->hue, 255, val);
+    drawCircle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
 }
 
-void game_begin(System s, Renderer r) {
-    Serial.println("Snake game started");
+void setup(void)
+{
+    Serial.begin(115200);
+    // while (!Serial) delay(10);
+
+    ProtomatterStatus status = matrix.begin();
+    Serial.printf("Protomatter begin() status: %d\n", status);
 
     for (int8_t i = 0; i < N_BIKES; i++)
     {
@@ -313,21 +350,39 @@ void game_begin(System s, Renderer r) {
         initSpot(&spots[i]);
     }
 
-    prevTimeMillis = millis();
+    prevTimeMillis = micros();
     Serial.printf("%d total bikes\n", N_BIKES);
+
+    encoder_setup();
+    chuck_setup();
 }
 
-
-void game_loop(System s, Renderer r)
+bool isChuckActive(int i)
 {
+    return i < N_WIICHUCKS && chucks[i].active;
+}
+
+bool isEncoderActive(int i)
+{
+    return i < N_ENCODERS && encoders[i].active;
+}
+
+void loop()
+{
+    chuck_loop();
+    encoder_loop();
     for (int i = 0; i < N_BIKES; i++)
     {
         Bike *bike = &bikes[i];
 
-        if (controllers[i].active && bike->lives > 0)
+        if (isChuckActive(i) && bike->lives > 0)
         {
-            bike_setJoyDirection(i, bike, controllers[i].x, controllers[i].y);
-            auto newEncoderPosition = controllers[i].encoder_position;
+            bike_setJoyDirection(i, bike, chucks[i].x, chucks[i].y);
+        }
+
+        if (isEncoderActive(i))
+        {
+            auto newEncoderPosition = encoders[i].encoder_position;
             auto rotation = newEncoderPosition - bike->lastEncoderPosition;
             bike_rotateDirection(bike, rotation);
             bike->lastEncoderPosition = newEncoderPosition;
@@ -335,11 +390,12 @@ void game_loop(System s, Renderer r)
     }
 
     uint32_t currentMillis = millis();
-    if (shouldWait(currentMillis)) return;
-
+    if (shouldWait(currentMillis))
+        return;
     uint32_t dtMillis = currentMillis - prevTimeMillis;
     // Serial.printf("time %d\n", t);
 
+    matrix.fillScreen(0x0);
     for (int i = 0; i < N_BIKES; i++)
     {
         Bike *bike = &bikes[i];
@@ -350,7 +406,7 @@ void game_loop(System s, Renderer r)
         if (bike->lives < 1 || isRespawning)
         {
             bike->nextMoveTime = currentMillis;
-            if(controllers[i].active) bike_setJoyDirection(i, bike, controllers[i].x, controllers[i].y);
+            bike_setJoyDirection(i, bike, chucks[i].x, chucks[i].y);
             // Serial.printf("respawning %d %d\n", i, respawnTime);
             continue;
         }
@@ -361,7 +417,7 @@ void game_loop(System s, Renderer r)
         }
         bike->nextMoveTime += secToMillis(1) / bike->speed;
 
-        if (!controllers[i].active)
+        if (!isChuckActive(i) && !isEncoderActive(i))
         {
             if (ai_shouldChangeDirection(bike))
                 ai_setRandomDirection(bike);
@@ -376,6 +432,7 @@ void game_loop(System s, Renderer r)
         if (isCollision(bike, 0))
         {
             bikeDied(bike);
+            chucks[i].active = 0;
         }
     }
 
@@ -388,16 +445,10 @@ void game_loop(System s, Renderer r)
             spot->current = 0;
             initSpot(spot);
         }
-        drawSpot(r, spot);
+        drawSpot(spot);
     }
 
-    drawBikes(r);
+    drawBikes();
+    matrix.show();
     prevTimeMillis = currentMillis;
-}
-
-Game game_create() {
-    Game game;
-    game.begin = game_begin;
-    game.loop = game_loop;
-    return game;
 }

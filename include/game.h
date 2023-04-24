@@ -7,8 +7,8 @@
 #include <system.h>
 
 typedef struct Game {
-    uint32_t (*begin)(System system, Renderer renderer);
-    uint32_t (*end)(void);
+    void (*begin)(System system, Renderer renderer);
+    void (*loop)(System system, Renderer renderer);
 } Game;
 
 extern Game game_create();

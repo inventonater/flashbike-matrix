@@ -26,6 +26,11 @@ struct encoder_t
 };
 encoder_t encoders[N_ENCODERS] = {};
 
+bool encoder_isActive(int i)
+{
+    return i < N_ENCODERS && encoders[i].active;
+}
+
 uint32_t Wheel(encoder_t *e, byte WheelPos)
 {
     WheelPos = 255 - WheelPos;

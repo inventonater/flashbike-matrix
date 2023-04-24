@@ -66,10 +66,13 @@ static void protomatter_draw_filled_rect(int x, int y, int width, int height, ui
     matrix.fillRect(x, y, width, height, color);
 }
 
-
 static void protomatter_draw_circle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
     matrix.fillCircle(x, y, radius, color);
     matrix.drawCircle(x, y, radius, borderColor);
+}
+
+static color_t protomatter_color_hsv(uint16_t hue, uint8_t sat, uint8_t val) {
+    return matrix.colorHSV(hue, sat, val);
 }
 
 static void protomatter_present() {
@@ -88,6 +91,7 @@ Renderer renderer_create() {
     renderer.draw_pixel = protomatter_draw_pixel;
     renderer.draw_rect = protomatter_draw_rect;
     renderer.draw_circle = protomatter_draw_circle;
+    renderer.color_hsv = protomatter_color_hsv;
     renderer.present = protomatter_present;
     renderer.cleanup = protomatter_cleanup;
     return renderer;
