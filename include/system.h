@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define N_CONTROLLERS 4
-
 typedef struct Controller
 {
     int x, y;
@@ -13,11 +11,10 @@ typedef struct Controller
     bool active;
 } Controller;
 
-extern Controller controllers[N_CONTROLLERS];
-
 typedef struct System {
     uint32_t (*get_millis)(void);
     void (*delay)(uint32_t ms);
+    const Controller* (*get_controller)(uint8_t index);
 } System;
 
 extern System system_create();

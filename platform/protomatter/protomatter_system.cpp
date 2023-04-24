@@ -5,6 +5,18 @@
 #include <input_wiichuck.h>
 #include <input_encoder.h>
 
+#define N_CONTROLLERS 4
+
+Controller controllers[N_CONTROLLERS] = {};
+Controller null_controller = {};
+
+const Controller* system_get_controller(uint8_t index) {
+    if (index < N_CONTROLLERS) {
+        return &controllers[index];
+    }
+    return &null_controller;
+}
+
 uint32_t system_get_millis(void)
 {
     return millis();
@@ -17,13 +29,12 @@ void system_delay(uint32_t ms)
 
 System system_create()
 {
-    System system;
-    system.get_millis = system_get_millis;
-    system.delay = system_delay;
-    return system;
+    return {
+        .get_millis = system_get_millis,
+        .delay = system_delay,
+        .get_controller = system_get_controller
+    };
 }
-
-Controller controllers[N_CONTROLLERS] = {};
 
 System s = {};
 Renderer r = {};
@@ -49,7 +60,6 @@ void setup()
 
 void loop()
 {
-    Serial.println("loop!");
     r.clear();
     encoder_loop();
     chuck_loop();

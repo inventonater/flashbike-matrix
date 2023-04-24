@@ -324,10 +324,12 @@ void game_loop(System s, Renderer r)
     {
         Bike *bike = &bikes[i];
 
-        if (controllers[i].active && bike->lives > 0)
+        const Controller *controller = s.get_controller(i);
+
+        if (controller->active && bike->lives > 0)
         {
-            bike_setJoyDirection(i, bike, controllers[i].x, controllers[i].y);
-            auto newEncoderPosition = controllers[i].encoder_position;
+            bike_setJoyDirection(i, bike, controller->x, controller->y);
+            auto newEncoderPosition = controller->encoder_position;
             auto rotation = newEncoderPosition - bike->lastEncoderPosition;
             bike_rotateDirection(bike, rotation);
             bike->lastEncoderPosition = newEncoderPosition;
@@ -343,6 +345,7 @@ void game_loop(System s, Renderer r)
     for (int i = 0; i < N_BIKES; i++)
     {
         Bike *bike = &bikes[i];
+        const Controller *controller = s.get_controller(i);
 
         auto respawnTime = currentMillis - bike->diedTime;
         auto isRespawning = respawnTime < secToMillis(RESPAWN_TIME);
@@ -350,7 +353,8 @@ void game_loop(System s, Renderer r)
         if (bike->lives < 1 || isRespawning)
         {
             bike->nextMoveTime = currentMillis;
-            if(controllers[i].active) bike_setJoyDirection(i, bike, controllers[i].x, controllers[i].y);
+
+            if(controller->active) bike_setJoyDirection(i, bike, controller->x, controller->y);
             // Serial.printf("respawning %d %d\n", i, respawnTime);
             continue;
         }
@@ -361,7 +365,7 @@ void game_loop(System s, Renderer r)
         }
         bike->nextMoveTime += secToMillis(1) / bike->speed;
 
-        if (!controllers[i].active)
+        if (!controller->active)
         {
             if (ai_shouldChangeDirection(bike))
                 ai_setRandomDirection(bike);
