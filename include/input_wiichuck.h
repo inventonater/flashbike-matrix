@@ -1,4 +1,5 @@
 #include <WiiChuck.h>
+#include <Wire.h>
 #include <system.h>
 
 #define MULTIPLEX_ADDR 0x70
@@ -10,6 +11,24 @@ struct chuck_t {
     int x, y;
 };
 chuck_t chucks[N_WIICHUCKS] = {};
+
+bool multiplexerPresent = false;
+bool isMultiplexerPresent() {
+    Wire.beginTransmission(MULTIPLEX_ADDR);
+    Wire.write(0x00); // Point to the register 0x00
+    byte status = Wire.endTransmission();
+    if (status != 0) {
+        return false; // Error occurred during the transmission
+    }
+
+    Wire.requestFrom(MULTIPLEX_ADDR, 1); // Request 1 byte from the multiplexer
+    if (Wire.available()) {
+        byte registerValue = Wire.read();
+        return registerValue == 0x00; // Check if the register value is 0x00
+    }
+
+    return false; // No data available from the multiplexer
+}
 
 bool chuck_isActive(int i) { return i < N_WIICHUCKS && chucks[i].active; }
 
@@ -24,17 +43,23 @@ int mapJoystickValue(int value) {
 }
 
 void chuck_init(uint8_t i) {
+    multiplexerPresent = isMultiplexerPresent();
     auto *p = &chucks[i];
     p->data = Accessory();
     p->x = 0;
     p->y = 0;
     p->active = false;
-    p->data.addMultiplexer(MULTIPLEX_ADDR, i);
-    p->data.begin();
-    if (p->data.type == Unknown) p->data.type = NUNCHUCK;
+
+    if(multiplexerPresent){
+        p->data.addMultiplexer(MULTIPLEX_ADDR, i);
+        p->data.begin();
+        if (p->data.type == Unknown) p->data.type = NUNCHUCK;
+    }
 }
 
 void chuck_update(uint8_t i) {
+    if(!multiplexerPresent) return;
+
     chuck_t *p = &chucks[i];
     p->data.readData();
 
