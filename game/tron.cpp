@@ -182,7 +182,7 @@ pos_t getTrailIndexPos(Bike *bike, uint8_t trailIndex) {
     return bike->pos[(bike->trailIndex + trailIndex) % TRAIL_LENGTH];
 }
 
-void draw_bikes(Renderer renderer) {
+void draw_bikes() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
 
@@ -190,9 +190,9 @@ void draw_bikes(Renderer renderer) {
             // draw trail with gamma correction but no pulse effect
             uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH;
             uint8_t val = remap(lerp, 3, 16, 160);
-            color_t c = renderer.color_hsv(bike->hue, 255, val);
+            color_t c = renderer_color_hsv(bike->hue, 255, val);
             pos_t pos = getTrailIndexPos(bike, trailIndex);
-            renderer.draw_pixel(pos.x, pos.y, c);
+            renderer_draw_pixel(pos.x, pos.y, c);
         }
     }
 }
@@ -239,16 +239,16 @@ void bike_died(Bike *pBike) {
     initBike(pBike, pBike->hue);
 }
 
-void drawSpot(Renderer renderer, Spot *pSpot) {
+void drawSpot(Spot *pSpot) {
     //    uint8_t val = remap(pSpot->current, 3, 16, 255);
     // fade in and out with a sine wave
     uint8_t val = 255 * (sin((double) pSpot->current / (double) pSpot->phaseMillis * 2 * PI) + 1) / 2;
 
-    color_t c = renderer.color_hsv(pSpot->hue, 255, val);
-    renderer.draw_circle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
+    color_t c = renderer_color_hsv(pSpot->hue, 255, val);
+    renderer_draw_circle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
 }
 
-void game_begin(System s, Renderer r) {
+void game_begin() {
     Serial.println("Snake game started");
 
     for (int8_t i = 0; i < N_BIKES; i++) {
@@ -266,11 +266,11 @@ void game_begin(System s, Renderer r) {
 }
 
 
-void update_controllers(const System &s) {
+void update_controllers() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
 
-        const Controller *controller = s.get_controller(i);
+        const Controller *controller = system_get_controller(i);
 
         if (controller->active && bike->lives > 0) {
             bike_setJoyDirection(i, bike, controller->x, controller->y);
@@ -282,10 +282,10 @@ void update_controllers(const System &s) {
     }
 }
 
-void update_bikes(const System &s, const uint32_t &dtMillis) {
+void update_bikes(const uint32_t &dtMillis) {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
-        const Controller *controller = s.get_controller(i);
+        const Controller *controller = system_get_controller(i);
 
         bike->millisUntilRespawn -= dtMillis;
         if (bike->lives < 1 || bike->millisUntilRespawn > 0) continue;
@@ -308,7 +308,7 @@ void update_collision() {
     }
 }
 
-void update_spots(const Renderer &r, const uint32_t &dtMillis) {
+void update_spots(const uint32_t &dtMillis) {
     for (int i = 0; i < N_SPOTS; i++) {
         Spot *spot = &spots[i];
         spot->current += dtMillis;
@@ -316,21 +316,21 @@ void update_spots(const Renderer &r, const uint32_t &dtMillis) {
             spot->current = 0;
             initSpot(spot);
         }
-        drawSpot(r, spot);
+        drawSpot(spot);
     }
 }
 
-void game_loop(System s, Renderer r) {
-    update_controllers(s);
+void game_loop() {
+    update_controllers();
 
     uint32_t currentMillis = millis();
     const uint32_t dtMillis = currentMillis - prevTimeMillis;
     if (dtMillis < TICK_RATE_MILLIS) return;
 
-    update_bikes(s, dtMillis);
+    update_bikes(dtMillis);
     update_collision();
-    update_spots(r, dtMillis);
-    draw_bikes(r);
+    update_spots(dtMillis);
+    draw_bikes();
 
     prevTimeMillis = currentMillis;
 }

@@ -1,9 +1,6 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include <stdlib.h>
-#include <time.h>
-
 typedef struct Controller
 {
     int x, y;
@@ -11,12 +8,8 @@ typedef struct Controller
     bool active;
 } Controller;
 
-typedef struct System {
-    uint32_t (*get_millis)(void);
-    void (*delay)(uint32_t ms);
-    const Controller* (*get_controller)(uint8_t index);
-} System;
-
-extern System system_create();
+uint32_t system_get_millis(void);
+void system_delay(uint32_t ms);
+const Controller* system_get_controller(uint8_t index);
 
 #endif // SYSTEM_H

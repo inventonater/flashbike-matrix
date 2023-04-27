@@ -25,16 +25,6 @@ void system_delay(uint32_t ms) {
     delay(ms);
 }
 
-System system_create() {
-    return {
-            .get_millis = system_get_millis,
-            .delay = system_delay,
-            .get_controller = system_get_controller
-    };
-}
-
-System s = {};
-Renderer r = {};
 Game g = {};
 
 void setup() {
@@ -46,16 +36,14 @@ void setup() {
     encoder_initAll();
     chuck_initAll();
 
-    s = system_create();
-    r = renderer_create();
-    r.init();
+    renderer_init();
 
     g = game_create();
-    g.begin(s, r);
+    g.begin();
 }
 
 void loop() {
-    r.clear();
+    renderer_clear();
 
     encoder_updateAll();
     chuck_updateAll();
@@ -76,6 +64,6 @@ void loop() {
         }
     }
 
-    g.loop(s, r);
-    r.present();
+    g.loop();
+    renderer_present();
 }

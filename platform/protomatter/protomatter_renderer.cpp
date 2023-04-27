@@ -21,78 +21,59 @@ uint8_t addrPins[] = {
     PIN_PROTOMATTER_ADDR_3
 };
 
-uint8_t clockPin = PIN_PROTOMATTER_CLOCK; // 13;
-uint8_t latchPin = PIN_PROTOMATTER_LATCH; // 0;
-uint8_t oePin = PIN_PROTOMATTER_OE; // 1;
+uint8_t clockPin = PIN_PROTOMATTER_CLOCK;
+uint8_t latchPin = PIN_PROTOMATTER_LATCH;
+uint8_t oePin = PIN_PROTOMATTER_OE;
 
 uint8_t bitDepth = 5;
 bool doubleBuffer = true;
 
-#define HEIGHT  32 // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
-#define WIDTH   64 // Matrix width (pixels)
-#define MAX_FPS 40 // Maximum redraw rate, frames/second
+#define HEIGHT 32
+#define WIDTH 64
+#define MAX_FPS 40
 
 Adafruit_Protomatter matrix(
         WIDTH, bitDepth, 1, rgbPins, sizeof(addrPins), addrPins,
         clockPin, latchPin, oePin, doubleBuffer);
 
-static void protomatter_init() {
-    Serial.printf("Protomatter...1");
-    while (!Serial) delay(10);
-    Serial.printf("Protomatter...2");
-    ProtomatterStatus status = matrix.begin();
-    Serial.printf("Protomatter begin() status: %d\n", status);
+void renderer_init() {
+  Serial.printf("Protomatter...1");
+  while (!Serial) delay(10);
+  Serial.printf("Protomatter...2");
+  ProtomatterStatus status = matrix.begin();
+  Serial.printf("Protomatter begin() status: %d\n", status);
 }
 
-static void protomatter_clear() {
-    matrix.fillScreen(0x0);
+void renderer_clear() {
+  matrix.fillScreen(0x0);
 }
 
-static void protomatter_draw_pixel(int x, int y, uint32_t color) {
-    matrix.drawPixel(x, y, color);
+void renderer_draw_pixel(int x, int y, uint32_t color) {
+  matrix.drawPixel(x, y, color);
 }
 
-static void protomatter_draw_rect(int x, int y, int width, int height, uint32_t color) {
-    // Draw the top and bottom horizontal lines
-    matrix.drawFastHLine(x, y, width, color);
-    matrix.drawFastHLine(x, y + height - 1, width, color);
-
-    // Draw the left and right vertical lines
-    matrix.drawFastVLine(x, y, height, color);
-    matrix.drawFastVLine(x + width - 1, y, height, color);
+void renderer_draw_rect(int x, int y, int width, int height, uint32_t color) {
+  matrix.drawFastHLine(x, y, width, color);
+  matrix.drawFastHLine(x, y + height - 1, width, color);
+  matrix.drawFastVLine(x, y, height, color);
+  matrix.drawFastVLine(x + width - 1, y, height, color);
 }
 
-static void protomatter_draw_filled_rect(int x, int y, int width, int height, uint32_t color) {
-    matrix.fillRect(x, y, width, height, color);
+void renderer_draw_filled_rect(int x, int y, int width, int height, uint32_t color) {
+  matrix.fillRect(x, y, width, height, color);
 }
 
-static void protomatter_draw_circle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
-    matrix.fillCircle(x, y, radius, color);
-    matrix.drawCircle(x, y, radius, borderColor);
+void renderer_draw_circle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
+  matrix.fillCircle(x, y, radius, color);
+  matrix.drawCircle(x, y, radius, borderColor);
 }
 
-static color_t protomatter_color_hsv(uint16_t hue, uint8_t sat, uint8_t val) {
-    return matrix.colorHSV(hue, sat, val);
+color_t renderer_color_hsv(uint16_t hue, uint8_t sat, uint8_t val) {
+  return matrix.colorHSV(hue, sat, val);
 }
 
-static void protomatter_present() {
-    // matrix.swapBuffers(true);
-    matrix.show();
+void renderer_present() {
+  matrix.show();
 }
 
-static void protomatter_cleanup() {
-    // matrix.deinit();
-}
-
-Renderer renderer_create() {
-    Renderer renderer;
-    renderer.init = protomatter_init;
-    renderer.clear = protomatter_clear;
-    renderer.draw_pixel = protomatter_draw_pixel;
-    renderer.draw_rect = protomatter_draw_rect;
-    renderer.draw_circle = protomatter_draw_circle;
-    renderer.color_hsv = protomatter_color_hsv;
-    renderer.present = protomatter_present;
-    renderer.cleanup = protomatter_cleanup;
-    return renderer;
-}
+void renderer_cleanup() {}

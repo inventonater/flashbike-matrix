@@ -12,7 +12,7 @@ const int BLOCK_SIZE = 20;
 static SDL_Window *window = NULL;
 static SDL_Renderer *sdl_renderer = NULL;
 
-static void sdl_init() {
+static void renderer_init() {
     fprintf(stderr, "sdl_init start\n");
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -41,18 +41,18 @@ static void sdl_init() {
     fprintf(stderr, "sdl_init complete\n");
 }
 
-static void sdl_clear() {
+void renderer_clear() {
     SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 255);
     SDL_RenderClear(sdl_renderer);
 }
 
-static void sdl_draw_pixel(int x, int y, uint32_t color) {
+void renderer_draw_pixel(int x, int y, uint32_t color) {
     SDL_Rect rect = {x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
     SDL_SetRenderDrawColor(sdl_renderer, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
     SDL_RenderFillRect(sdl_renderer, &rect);
 }
 
-static void sdl_draw_rect(int x, int y, int width, int height, uint32_t color) {
+void renderer_draw_rect(int x, int y, int width, int height, uint32_t color) {
     fprintf(stderr, "sdl_draw_rect x and y: %d, %d  width and height: %d, %d\n", x, y, width, height);
 
     SDL_Rect rect = {x * BLOCK_SIZE, y * BLOCK_SIZE, width * BLOCK_SIZE, height * BLOCK_SIZE};
@@ -61,24 +61,13 @@ static void sdl_draw_rect(int x, int y, int width, int height, uint32_t color) {
     SDL_RenderFillRect(sdl_renderer, &rect);
 }
 
-static void sdl_present() {
+void renderer_present() {
     SDL_RenderPresent(sdl_renderer);
 }
 
-static void sdl_cleanup() {
+void renderer_cleanup() {
     SDL_DestroyRenderer(sdl_renderer);
     SDL_DestroyWindow(window);
     TTF_Quit();
     SDL_Quit();
-}
-
-extern Renderer renderer_create() {
-    Renderer renderer;
-    renderer.init = sdl_init;
-    renderer.clear = sdl_clear;
-    renderer.draw_pixel = sdl_draw_pixel;
-    renderer.draw_rect = sdl_draw_rect;
-    renderer.present = sdl_present;
-    renderer.cleanup = sdl_cleanup;
-    return renderer;
 }
