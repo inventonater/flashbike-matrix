@@ -38,7 +38,7 @@ Adafruit_Protomatter matrix(
 
 static void protomatter_init() {
     Serial.printf("Protomatter...1");
-    while (!Serial) delay(10);
+    // while (!Serial) delay(10);
     Serial.printf("Protomatter...2");
     ProtomatterStatus status = matrix.begin();
     Serial.printf("Protomatter begin() status: %d\n", status);
