@@ -5,16 +5,19 @@
 #include <input_wiichuck.h>
 #include <input_encoder.h>
 
+#define TICK_RATE_MILLIS 20
 #define N_CONTROLLERS 4
 
 Controller controllers[N_CONTROLLERS] = {};
-Controller null_controller = {};
+sys_time_t Time;
+
+static Game game = {};
 
 const Controller *system_get_controller(uint8_t index) {
     if (index < N_CONTROLLERS) {
         return &controllers[index];
     }
-    return &null_controller;
+    return NULL;
 }
 
 uint32_t system_get_millis(void) {
@@ -25,8 +28,6 @@ void system_delay(uint32_t ms) {
     delay(ms);
 }
 
-Game g = {};
-
 void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage level)
@@ -35,20 +36,22 @@ void setup() {
 
     encoder_initAll();
     chuck_initAll();
-
     renderer_init();
-
-    g = game_create();
-    g.begin();
+    game = game_create();
+    game.begin();
 }
 
 void loop() {
-    renderer_clear();
+    auto time = system_get_millis();
+    Time.delta = time - Time.time;
+    if (Time.delta < TICK_RATE_MILLIS) return;
+    Time.time = time;
 
+    renderer_clear();
     encoder_updateAll();
     chuck_updateAll();
 
-    for (uint8_t i = 0; i < N_CONTROLLERS; i++) {
+    for (size_t i = 0; i < N_CONTROLLERS; i++) {
         Controller *c = &controllers[i];
         c->active = false;
 
@@ -64,6 +67,6 @@ void loop() {
         }
     }
 
-    g.loop();
+    game.loop();
     renderer_present();
 }

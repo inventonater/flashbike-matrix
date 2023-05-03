@@ -5,7 +5,6 @@
 
 #define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 #define WIDTH 64   // Matrix width (pixels)
-#define TICK_RATE_MILLIS 20
 
 #define RESPAWN_TIME 4
 #define TRAIL_LENGTH 80
@@ -43,7 +42,6 @@ struct Spot {
 
 Spot spots[N_SPOTS];
 
-uint32_t prevTimeMillis = 0; // Used for frames-per-second throttle
 bool pendingQuit = false;
 
 pos_t randomPosition() {
@@ -248,24 +246,6 @@ void drawSpot(Spot *pSpot) {
     renderer_draw_circle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
 }
 
-void game_begin() {
-    Serial.println("Snake game started");
-
-    for (int8_t i = 0; i < N_BIKES; i++) {
-        initBike(&bikes[i], color_hueForBikeIndex(i, N_BIKES));
-        bikes[i].lives = 6;
-        bikes[i].speed = 4; // random(6, 20);
-    }
-
-    for (int8_t i = 0; i < N_SPOTS; i++) {
-        initSpot(&spots[i]);
-    }
-
-    prevTimeMillis = millis();
-    Serial.printf("%d total bikes\n", N_BIKES);
-}
-
-
 void update_controllers() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
@@ -282,15 +262,15 @@ void update_controllers() {
     }
 }
 
-void update_bikes(const uint32_t &dtMillis) {
+void update_bikes() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
         const Controller *controller = system_get_controller(i);
 
-        bike->millisUntilRespawn -= dtMillis;
+        bike->millisUntilRespawn -= Time.delta;
         if (bike->lives < 1 || bike->millisUntilRespawn > 0) continue;
 
-        bike->millisUntilMove -= dtMillis;
+        bike->millisUntilMove -= Time.delta;
         if (bike->millisUntilMove > 0) continue;
         bike->millisUntilMove += secToMillis(1) / bike->speed;
 
@@ -308,10 +288,10 @@ void update_collision() {
     }
 }
 
-void update_spots(const uint32_t &dtMillis) {
+void update_spots() {
     for (int i = 0; i < N_SPOTS; i++) {
         Spot *spot = &spots[i];
-        spot->current += dtMillis;
+        spot->current += Time.delta;
         if (spot->current > spot->phaseMillis) {
             spot->current = 0;
             initSpot(spot);
@@ -320,19 +300,28 @@ void update_spots(const uint32_t &dtMillis) {
     }
 }
 
+void game_begin() {
+    Serial.println("Snake game started");
+
+    for (int8_t i = 0; i < N_BIKES; i++) {
+        initBike(&bikes[i], color_hueForBikeIndex(i, N_BIKES));
+        bikes[i].lives = 6;
+        bikes[i].speed = 4; // random(6, 20);
+    }
+
+    for (int8_t i = 0; i < N_SPOTS; i++) {
+        initSpot(&spots[i]);
+    }
+
+    Serial.printf("%d total bikes\n", N_BIKES);
+}
+
 void game_loop() {
     update_controllers();
-
-    uint32_t currentMillis = millis();
-    const uint32_t dtMillis = currentMillis - prevTimeMillis;
-    if (dtMillis < TICK_RATE_MILLIS) return;
-
-    update_bikes(dtMillis);
+    update_bikes();
     update_collision();
-    update_spots(dtMillis);
+    update_spots();
     draw_bikes();
-
-    prevTimeMillis = currentMillis;
 }
 
 Game game_create() {
