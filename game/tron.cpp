@@ -150,22 +150,31 @@ void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
 
     if (bike->dir.x != dir.x || bike->dir.y != dir.y) {
         // Serial.printf("Joy %d: %d %d\n", player_index, dir.x, dir.y);
-        if (!dir_isOpposite(dir, bike->dir))
-            bike->dir = dir;
+        bike_setDirSafe(bike, dir);
     }
 }
 
 void bike_rotateDirection(Bike *bike, int8_t rotation) {
-    if (rotation == 0)
-        return;
+    if (rotation == 0) return;
     rotation = rotation > 0 ? -1 : 1;
+
+    pos_t dir;
     if (bike->dir.x == 0) {
-        bike->dir.x = bike->dir.y * rotation;
-        bike->dir.y = 0;
+        dir.x = bike->dir.y * rotation;
+        dir.y = 0;
     } else {
-        bike->dir.y = -bike->dir.x * rotation;
-        bike->dir.x = 0;
+        dir.y = -bike->dir.x * rotation;
+        dir.x = 0;
     }
+    bike_setDirSafe(bike, dir);
+}
+
+void bike_setDirSafe(Bike *bike, pos_t dir) {
+    if (dir_isOpposite(bike->dir, dir)) return;;
+
+    pos_t original = bike->dir;
+    bike->dir = dir;
+    if (isCollision(bike, 1)) bike->dir = original;
 }
 
 void moveBike(Bike *bike) {
@@ -249,23 +258,21 @@ void drawSpot(Spot *pSpot) {
 void update_controllers() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
-
         const Controller *controller = system_get_controller(i);
 
-        if (controller->active && bike->lives > 0) {
-            bike_setJoyDirection(i, bike, controller->x, controller->y);
-            auto newEncoderPosition = controller->position;
-            auto rotation = newEncoderPosition - bike->lastEncoderPosition;
-            bike_rotateDirection(bike, rotation);
-            bike->lastEncoderPosition = newEncoderPosition;
-        }
+        if (!controller->active || bike->lives <= 0) continue;
+
+        bike_setJoyDirection(i, bike, controller->x, controller->y);
+        int32_t newEncoderPosition = controller->position;
+        uint32_t rotation = newEncoderPosition - bike->lastEncoderPosition;
+        bike_rotateDirection(bike, rotation);
+        bike->lastEncoderPosition = newEncoderPosition;
     }
 }
 
 void update_bikes() {
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
-        const Controller *controller = system_get_controller(i);
 
         bike->millisUntilRespawn -= Time.delta;
         if (bike->lives < 1 || bike->millisUntilRespawn > 0) continue;
@@ -274,6 +281,7 @@ void update_bikes() {
         if (bike->millisUntilMove > 0) continue;
         bike->millisUntilMove += secToMillis(1) / bike->speed;
 
+        const Controller *controller = system_get_controller(i);
         if (!controller->active && ai_shouldChangeDirection(bike)) ai_setRandomDirection(bike);
         moveBike(bike);
     }
