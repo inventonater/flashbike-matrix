@@ -119,6 +119,14 @@ bool dir_isOpposite(pos_t dir1, pos_t dir2) {
     return false;
 }
 
+void bike_setDirSafe(Bike *bike, pos_t dir) {
+    if (dir_isOpposite(bike->dir, dir)) return;;
+
+    pos_t original = bike->dir;
+    bike->dir = dir;
+    if (isCollision(bike, 1)) bike->dir = original;
+}
+
 void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
     if (bike->lives < 1) {
         bike->dir = {0, 0};
@@ -167,14 +175,6 @@ void bike_rotateDirection(Bike *bike, int8_t rotation) {
         dir.x = 0;
     }
     bike_setDirSafe(bike, dir);
-}
-
-void bike_setDirSafe(Bike *bike, pos_t dir) {
-    if (dir_isOpposite(bike->dir, dir)) return;;
-
-    pos_t original = bike->dir;
-    bike->dir = dir;
-    if (isCollision(bike, 1)) bike->dir = original;
 }
 
 void moveBike(Bike *bike) {
