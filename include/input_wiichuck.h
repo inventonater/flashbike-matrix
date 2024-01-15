@@ -17,6 +17,8 @@ bool isMultiplexerPresent() {
     Wire.beginTransmission(MULTIPLEX_ADDR);
     Wire.write(0x00); // Point to the register 0x00
     byte status = Wire.endTransmission();
+    Serial.printf("isMultiplexerPresent status: %d\n", status);
+
     if (status != 0) {
         return false; // Error occurred during the transmission
     }
@@ -24,6 +26,8 @@ bool isMultiplexerPresent() {
     Wire.requestFrom(MULTIPLEX_ADDR, 1); // Request 1 byte from the multiplexer
     if (Wire.available()) {
         byte registerValue = Wire.read();
+
+        Serial.printf("isMultiplexerPresent registerValue: %d\n", registerValue);
         return registerValue == 0x00; // Check if the register value is 0x00
     }
 
@@ -43,7 +47,9 @@ int mapJoystickValue(int value) {
 }
 
 void chuck_init(uint8_t i) {
+    Wire.begin();
     multiplexerPresent = isMultiplexerPresent();
+
     auto *p = &chucks[i];
     p->data = Accessory();
     p->x = 0;

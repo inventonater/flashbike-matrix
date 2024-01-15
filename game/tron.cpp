@@ -309,7 +309,7 @@ void update_spots() {
 }
 
 void game_begin() {
-    Serial.println("Snake game started");
+    Serial.println("TRON game started");
 
     for (int8_t i = 0; i < N_BIKES; i++) {
         initBike(&bikes[i], color_hueForBikeIndex(i, N_BIKES));
@@ -327,7 +327,7 @@ void game_begin() {
 void game_loop() {
     update_controllers();
     update_bikes();
-    update_collision();
+    // update_collision();
     update_spots();
     draw_bikes();
 }
