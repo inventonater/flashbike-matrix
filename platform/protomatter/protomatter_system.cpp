@@ -168,7 +168,7 @@ void setup()
   // while (!Serial) delay(100);
   Serial.printf("\n\nProtomatter System Setup\n");
 
-  // encoder_initAll();
+  encoder_initAll();
   chuck_initAll();
   renderer_init();
   game = game_create();
@@ -187,7 +187,7 @@ void loop()
   Time.time = time;
 
   renderer_clear();
-  // encoder_updateAll();
+  encoder_updateAll();
   chuck_updateAll();
 
   for (size_t i = 0; i < N_CONTROLLERS; i++)

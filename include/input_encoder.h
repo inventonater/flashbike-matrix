@@ -18,6 +18,7 @@
 int seesaw_addrs[] = {0x36, 0x37, 0x38, 0x39, 0x3A};
 
 struct encoder_t {
+    bool isConnected;
     bool active;
     Adafruit_seesaw data;
     seesaw_NeoPixel neoPixel = seesaw_NeoPixel(1, SS_NEOPIX, NEO_GRB + NEO_KHZ800);
@@ -53,9 +54,20 @@ void encoder_init(uint8_t i) {
         return;
     }
 
+    // Read a known register from the encoder
+    int32_t position = encoder_readPosition(pEncoder);
+
+    // Check the value of the register
+    if (position == -1) {
+        Serial.printf("Encoder %d not connected\n", i);
+        pEncoder->isConnected = false;
+        return;
+    }
+    pEncoder->isConnected = true;
+
     uint32_t version = (pEncoder->data.getVersion() >> 16) & 0xFFFF;
     if (version != 4991) {
-        Serial.print("Wrong firmware loaded? ");
+        Serial.print("Rotary Encoder wrong firmware loaded?");
         Serial.println(version);
     }
 
@@ -73,6 +85,11 @@ void encoder_init(uint8_t i) {
 
 void encoder_update(uint8_t i) {
     encoder_t *pEncoder = &encoders[i];
+    
+    if (!pEncoder->isConnected) {
+        return;
+    }
+
     pEncoder->isPressed = encoder_readPress(pEncoder);
 
     if (!pEncoder->active) {
