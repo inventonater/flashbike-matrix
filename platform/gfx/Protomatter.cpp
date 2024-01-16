@@ -1,15 +1,7 @@
-/*******************************************************************************
- * Adafruit NeoPixel GFX Example
- * This is a simple GFX example for Adafruit_NeoPixel
- *
- * Dependent libraries:
- * Adafruit_NeoPixel: https://github.com/adafruit/Adafruit_NeoPixel.git
- ******************************************************************************/
 #include <Arduino_GFX_Library.h>
+#include "Protomatter_GFX.h"
 
-// all settings in header file
-#include "Adafruit_NeoPixel_GFX.h"
-Arduino_GFX *gfx = new Adafruit_NeoPixel_GFX();
+Arduino_GFX *gfx = new Protomatter_GFX();
 int16_t x;
 uint16_t w, tw;
 
@@ -18,7 +10,7 @@ void setup(void)
   Serial.begin(115200);
   // Serial.setDebugOutput(true);
   // while(!Serial);
-  Serial.println("Arduino_GFX Adafruit_NeoPixel example");
+  Serial.println("Protomatter_GFX example");
 
   // Init Display
   if (!gfx->begin())

@@ -18,15 +18,29 @@ struct pos_t {
     coord_t y;
 };
 
+struct dir_t {
+    dir_t() {
+        this->x = 0;
+        this->y = 0;
+    }
+
+    dir_t(int8_t x, int8_t y) {
+        this->x = x;
+        this->y = y;
+    }
+    int8_t x;
+    int8_t y;
+};
+
 struct Bike {
-    pos_t pos[TRAIL_LENGTH];
-    pos_t dir;
+    pos_t pos[TRAIL_LENGTH]{};
+    dir_t dir;
     uint8_t speed;
     int lives;
     int millisUntilMove;
     int millisUntilRespawn;
     uint8_t trailIndex;
-    uint16_t hue;
+    hue_t hue;
     uint32_t lastEncoderPosition;
 };
 
@@ -34,7 +48,7 @@ Bike bikes[N_BIKES];
 
 struct Spot {
     pos_t pos;
-    uint16_t hue;
+    hue_t hue;
     uint8_t radius;
     uint32_t phaseMillis;
     uint32_t current;
@@ -95,7 +109,7 @@ bool ai_shouldChangeDirection(Bike *bike) {
 }
 
 void ai_setRandomDirection(Bike *bike) {
-    pos_t dir = bike->dir;
+    dir_t dir = bike->dir;
     if (dir.x == 0) {
         bike->dir.x = random(0, 2) * 2 - 1;
         bike->dir.y = 0;
@@ -111,7 +125,7 @@ void ai_setRandomDirection(Bike *bike) {
     }
 }
 
-bool dir_isOpposite(pos_t dir1, pos_t dir2) {
+bool dir_isOpposite(dir_t dir1, dir_t dir2) {
     if (dir1.x == dir2.x && dir1.y == -dir2.y)
         return true;
     if (dir1.x == -dir2.x && dir1.y == dir2.y)
@@ -119,10 +133,10 @@ bool dir_isOpposite(pos_t dir1, pos_t dir2) {
     return false;
 }
 
-void bike_setDirSafe(Bike *bike, pos_t dir) {
+void bike_setDirSafe(Bike *bike, dir_t dir) {
     if (dir_isOpposite(bike->dir, dir)) return;;
 
-    pos_t original = bike->dir;
+    dir_t original = bike->dir;
     bike->dir = dir;
     if (isCollision(bike, 1)) bike->dir = original;
 }
@@ -134,7 +148,7 @@ void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
         return;
     }
 
-    pos_t dir = {-x, y};
+    dir_t dir = {-x, y};
     if (dir.x == 0 && dir.y == 0)
         return;
 
@@ -166,7 +180,7 @@ void bike_rotateDirection(Bike *bike, int8_t rotation) {
     if (rotation == 0) return;
     rotation = rotation > 0 ? -1 : 1;
 
-    pos_t dir;
+    dir_t dir;
     if (bike->dir.x == 0) {
         dir.x = bike->dir.y * rotation;
         dir.y = 0;
