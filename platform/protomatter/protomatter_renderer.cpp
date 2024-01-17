@@ -42,36 +42,36 @@ public:
   Protomatter_GFX(int16_t w, int16_t h) : Arduino_GFX(w, h)
   {
     // Initialize Protomatter specific variables here if needed
-    ProtomatterStatus status = matrix.begin();
-    Serial.printf("Protomatter begin() status: %d\n", status);
+    Serial.printf("Protomatter_GFX init\n");
   }
 
   bool begin(int32_t speed = GFX_NOT_DEFINED) override
   {
-    // matrix.begin();
-    fillScreen(0x0);
+    ProtomatterStatus status = matrix.begin();
+    Serial.printf("Protomatter_GFX.begin.  matrix status: %d\n", status);
     return true;
   }
 
   void writePixelPreclipped(int16_t x, int16_t y, uint16_t color) override
   {
-    uint8_t r = (color >> 11) & 0x1F;  // Extract the 5-bit red component
-    uint8_t g = (color >> 5) & 0x3F;   // Extract the 6-bit green component
-    uint8_t b = color & 0x1F;          // Extract the 5-bit blue component
+    // uint8_t r = (color >> 11) & 0x1F;  // Extract the 5-bit red component
+    // uint8_t g = (color >> 5) & 0x3F;   // Extract the 6-bit green component
+    // uint8_t b = color & 0x1F;          // Extract the 5-bit blue component
 
-    // Convert the color components to 8-bit values
-    r = (r * 527 + 23) >> 6;
-    g = (g * 259 + 33) >> 6;
-    b = (b * 527 + 23) >> 6;
+    // // Convert the color components to 8-bit values
+    // r = (r * 527 + 23) >> 6;
+    // g = (g * 259 + 33) >> 6;
+    // b = (b * 527 + 23) >> 6;
 
-    color_t typedColor = color;
-    renderer_draw_pixel(x, y, typedColor);
+    // color_t typedColor = color;
+    matrix.drawPixel(x, y, color);
   }
 
   // Implement other necessary methods here
   void endWrite(void) override
   {
     // Apply all batched drawing operations here
+    Serial.printf("endWrite\n");
     matrix.show();
   }
 
@@ -81,18 +81,18 @@ private:
         clockPin, latchPin, oePin, doubleBuffer);
 };
 
-Arduino_GFX* gfx = new Protomatter_GFX(WIDTH, HEIGHT);
+Arduino_GFX* gfx;
 
 void renderer_init() {
-  Serial.printf("Protomatter...1");
 //   while (!Serial) delay(10);
-  Serial.printf("Protomatter...2");
+  Serial.printf("renderer_init\n");
+  gfx = new Protomatter_GFX(WIDTH, HEIGHT);
   gfx->begin();
 }
 
 void renderer_start_frame() {
-  // gfx->fillScreen(0x0);
   gfx->startWrite();
+  gfx->writeFillRect(0, 0, gfx->width(), gfx->height(), 0x0);
 }
 
 void renderer_end_frame() {
@@ -100,11 +100,11 @@ void renderer_end_frame() {
 }
 
 void renderer_clear() {
-  gfx->fillScreen(0x0);
+  // gfx->fillScreen(0x0);
 }
 
-void renderer_draw_pixel(int x, int y, color_t color) {
-  gfx->drawPixel(x, y, color);
+void renderer_write_pixel(int x, int y, color_t color) {
+  gfx->writePixelPreclipped(x, y, color);
 }
 
 void renderer_draw_rect(int x, int y, int width, int height, uint32_t color) {

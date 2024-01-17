@@ -185,7 +185,7 @@ void loop()
   Time.delta = time - Time.time;
   if (Time.delta < TICK_RATE_MILLIS) return;
   Time.time = time;
-
+  
   renderer_start_frame();
   encoder_updateAll();
   chuck_updateAll();

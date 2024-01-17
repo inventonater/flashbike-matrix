@@ -213,8 +213,9 @@ void draw_bikes() {
             uint8_t val = remap(lerp, 3, 16, 160);
             color_t c = renderer_color_hsv(bike->hue, 255, val);
             pos_t pos = getTrailIndexPos(bike, trailIndex);
-            renderer_draw_pixel(pos.x, pos.y, c);
+            renderer_write_pixel(pos.x, pos.y, c);
         }
+        // Serial.printf( "Bike %d: %d %d\n", i, bike->pos[0].x, bike->pos[0].y);
     }
 }
 
@@ -281,6 +282,7 @@ void update_controllers() {
         uint32_t rotation = newEncoderPosition - bike->lastEncoderPosition;
         bike_rotateDirection(bike, rotation);
         bike->lastEncoderPosition = newEncoderPosition;
+        // Serial.printf("Joy %d: %d %d\n", i, controller->x, controller->y);
     }
 }
 
