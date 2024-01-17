@@ -186,7 +186,7 @@ void loop()
   if (Time.delta < TICK_RATE_MILLIS) return;
   Time.time = time;
 
-  renderer_clear();
+  renderer_start_frame();
   encoder_updateAll();
   chuck_updateAll();
 
@@ -214,5 +214,5 @@ void loop()
   }
 
   game.loop();
-  renderer_present();
+  renderer_end_frame();
 }
