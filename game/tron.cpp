@@ -215,7 +215,7 @@ void draw_bikes() {
             pos_t pos = getTrailIndexPos(bike, trailIndex);
             renderer_write_pixel(pos.x, pos.y, c);
         }
-        // printy( "Bike %d: %d %d\n", i, bike->pos[0].x, bike->pos[0].y);
+        printy( "Bike %d: %d %d\n", i, bike->pos[0].x, bike->pos[0].y);
     }
 }
 
@@ -326,7 +326,7 @@ void update_spots() {
 }
 
 void game_begin() {
-    printy("TRON game started");
+    printy("TRON game started\n");
 
     for (int8_t i = 0; i < N_BIKES; i++) {
         initBike(&bikes[i], color_hueForBikeIndex(i, N_BIKES));
@@ -342,16 +342,25 @@ void game_begin() {
 }
 
 void game_loop() {
+    printy("game_loop start\n");
+
     update_controllers();
     update_bikes();
     // update_collision();
     update_spots();
     draw_bikes();
+
+    printy("game_loop end\n");
+}
+
+uint8_t get_millis_per_frame() {
+    return 20  ;
 }
 
 Game game_create() {
     Game game;
     game.begin = game_begin;
     game.loop = game_loop;
+    game.get_millis_per_frame = get_millis_per_frame;
     return game;
 }

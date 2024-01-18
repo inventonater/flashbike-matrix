@@ -8,8 +8,12 @@
 // #include <cstdlib.h>
 // #include <ctime.h>
 
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
+const int BLOCK_SIZE = 20;
+const int GRID_WIDTH = 32;
+const int GRID_HEIGHT = 24;
 
-#define TICK_RATE_MILLIS 20
 sys_time_t Time;
 
 uint32_t system_get_millis(void) {
@@ -42,8 +46,7 @@ const Controller *system_get_controller(uint8_t index)
   return NULL;
 }
 
-
-int main_() {
+int main() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 1;
@@ -102,39 +105,42 @@ int main_() {
         }
 
         uint32_t time = system_get_millis();
+
         Time.delta = time - Time.time;
-        if (Time.delta < TICK_RATE_MILLIS) return;
+        printy("delta: %d\n", Time.delta);
+
+        if (Time.delta < game.get_millis_per_frame()) continue;
         Time.time = time;
 
-        if (!game_state.game_over) {
-            Uint32 current_time = SDL_GetTicks();
-            if (current_time - last_move_time > 100) {
-                move_snake(&game_state, dx, dy);
-                last_move_time = current_time;
-            }
+        renderer_start_frame();
+        // encoder_updateAll();
+        // chuck_updateAll();
+
+        for (size_t i = 0; i < N_CONTROLLERS; i++)
+        {
+            Controller *c = &controllers[i];
+            c->active = false;
+
+            // if (encoder_isActive(i))
+            // {
+            //     c->active = true;
+            //     c->position = encoders[i].position;
+            // }
+
+            // if (chuck_isActive(i))
+            // {
+            //     c->active = true;
+            //     c->x = chucks[i].x;
+            //     c->y = chucks[i].y;
+            // }
+
+        #ifdef PRINT_CONTROLLER_STATE
+            Serial.printf("Controller %d: active: %d, x: %d, y: %d, position: %d\n", i, c->active, c->x, c->y, c->position);
+        #endif
         }
 
-        // Clear
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-
-        // Draw Rect
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        for (int i = 0; i < game_state.snake.length; i++) {
-            SDL_Rect rect = { game_state.snake.body[i].x * BLOCK_SIZE, game_state.snake.body[i].y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
-            SDL_RenderFillRect(renderer, &rect);
-        }
-
-        // Draw Rect
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-        SDL_Rect food_rect = { game_state.food.x * BLOCK_SIZE, game_state.food.y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE };
-        SDL_RenderFillRect(renderer, &food_rect);
-
-        // Preset
-        SDL_RenderPresent(renderer);
-
-        // Delay
-        SDL_Delay(10);
+        game.loop();
+        renderer_end_frame();
     }
 
     // Cleanup

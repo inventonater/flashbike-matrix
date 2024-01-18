@@ -6,7 +6,6 @@
 #include <input_encoder.h>
 
 #define WAIT_FOR_SERIAL 0
-#define TICK_RATE_MILLIS 20
 #define PRINT_CONTROLLER_STATE
 
 sys_time_t Time;
@@ -180,7 +179,7 @@ void loop()
 
   auto time = system_get_millis();
   Time.delta = time - Time.time;
-  if (Time.delta < TICK_RATE_MILLIS) return;
+  if (Time.delta < game.get_millis_per_frame()) return;
   Time.time = time;
   
   renderer_start_frame();
