@@ -1,6 +1,8 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include <cstdint>
+
 typedef struct Controller
 {
     int8_t x, y;

@@ -53,9 +53,9 @@ Spot spots[N_SPOTS];
 
 uint32_t prevTime = 0; // Used for frames-per-second throttle
 
-uint32_t secToMicros(uint8_t s) {
-    return s * 1000000L;
-}
+// uint32_t secToMicros(uint8_t s) {
+//     return s * 1000000L;
+// }
 
 pos_t randomPosition() {
     pos_t pos;

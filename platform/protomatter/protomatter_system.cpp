@@ -7,20 +7,17 @@
 
 #define WAIT_FOR_SERIAL 0
 #define TICK_RATE_MILLIS 20
-#define N_CONTROLLERS 4
 #define PRINT_CONTROLLER_STATE
 
-Controller controllers[N_CONTROLLERS] = {};
 sys_time_t Time;
 
 static Game game = {};
 
+#define N_CONTROLLERS 4
+Controller controllers[N_CONTROLLERS] = {};
 const Controller *system_get_controller(uint8_t index)
 {
-  if (index < N_CONTROLLERS)
-  {
-    return &controllers[index];
-  }
+  if (index < N_CONTROLLERS) return &controllers[index];
   return NULL;
 }
 

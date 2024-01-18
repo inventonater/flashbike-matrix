@@ -33,7 +33,7 @@ struct dir_t {
 };
 
 struct Bike {
-    pos_t pos[TRAIL_LENGTH]{};
+    pos_t pos[TRAIL_LENGTH];
     dir_t dir;
     uint8_t speed;
     int lives;
@@ -143,12 +143,12 @@ void bike_setDirSafe(Bike *bike, dir_t dir) {
 
 void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
     if (bike->lives < 1) {
-        bike->dir = {0, 0};
+        bike->dir = dir_t();
         bike->speed = 0;
         return;
     }
 
-    dir_t dir = {-x, y};
+    dir_t dir = dir_t(-x, y);
     if (dir.x == 0 && dir.y == 0)
         return;
 
@@ -171,7 +171,7 @@ void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
     }
 
     if (bike->dir.x != dir.x || bike->dir.y != dir.y) {
-        // Serial.printf("Joy %d: %d %d\n", player_index, dir.x, dir.y);
+        // printy("Joy %d: %d %d\n", player_index, dir.x, dir.y);
         bike_setDirSafe(bike, dir);
     }
 }
@@ -215,18 +215,18 @@ void draw_bikes() {
             pos_t pos = getTrailIndexPos(bike, trailIndex);
             renderer_write_pixel(pos.x, pos.y, c);
         }
-        // Serial.printf( "Bike %d: %d %d\n", i, bike->pos[0].x, bike->pos[0].y);
+        // printy( "Bike %d: %d %d\n", i, bike->pos[0].x, bike->pos[0].y);
     }
 }
 
-void err(int x) {
-    uint8_t i;
-    pinMode(LED_BUILTIN, OUTPUT); // Using onboard LED
-    for (i = 1;; i++) {                                     // Loop forever...
-        digitalWrite(LED_BUILTIN, i & 1); // LED on/off blink to alert user
-        delay(x);
-    }
-}
+// void err(int x) {
+//     uint8_t i;
+//     pinMode(LED_BUILTIN, OUTPUT); // Using onboard LED
+//     for (i = 1;; i++) {                                     // Loop forever...
+//         digitalWrite(LED_BUILTIN, i & 1); // LED on/off blink to alert user
+//         delay(x);
+//     }
+// }
 
 void initBike(Bike *pBike, uint16_t hue) {
     for (int i = 0; i < TRAIL_LENGTH; i++) {
@@ -252,22 +252,23 @@ void bike_died(Bike *pBike) {
     pBike->lives = pBike->lives - 1;
 
     if (pBike->lives < 1) {
-        Serial.printf("Bike eliminated\n");
+        printy("Bike eliminated\n");
         pBike->speed = 0;
         return;
     }
     pBike->speed += 4;
-    Serial.printf("Bike died %d\n", pBike->lives);
+    printy("Bike died %d\n", pBike->lives);
     initBike(pBike, pBike->hue);
 }
 
 void drawSpot(Spot *pSpot) {
     //    uint8_t val = remap(pSpot->current, 3, 16, 255);
     // fade in and out with a sine wave
-    uint8_t val = 255 * (sin((double) pSpot->current / (double) pSpot->phaseMillis * 2 * PI) + 1) / 2;
+    uint8_t val = 255 * (sin((double) pSpot->current / (double) pSpot->phaseMillis * 2 * M_PI) + 1) / 2;
 
     color_t c = renderer_color_hsv(pSpot->hue, 255, val);
-    renderer_draw_circle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
+    // renderer_draw_circle(pSpot->pos.x, pSpot->pos.y, pSpot->radius, 0, c);
+    printy("Spot %d %d %d\n", pSpot->pos.x, pSpot->pos.y, pSpot->radius);
 }
 
 void update_controllers() {
@@ -282,7 +283,7 @@ void update_controllers() {
         uint32_t rotation = newEncoderPosition - bike->lastEncoderPosition;
         bike_rotateDirection(bike, rotation);
         bike->lastEncoderPosition = newEncoderPosition;
-        // Serial.printf("Joy %d: %d %d\n", i, controller->x, controller->y);
+        // printy("Joy %d: %d %d\n", i, controller->x, controller->y);
     }
 }
 
@@ -325,7 +326,7 @@ void update_spots() {
 }
 
 void game_begin() {
-    Serial.println("TRON game started");
+    printy("TRON game started");
 
     for (int8_t i = 0; i < N_BIKES; i++) {
         initBike(&bikes[i], color_hueForBikeIndex(i, N_BIKES));
@@ -337,7 +338,7 @@ void game_begin() {
         initSpot(&spots[i]);
     }
 
-    Serial.printf("%d total bikes\n", N_BIKES);
+    printy("%d total bikes\n", N_BIKES);
 }
 
 void game_loop() {

@@ -41,7 +41,6 @@ class Protomatter_GFX : public Arduino_GFX
 public:
   Protomatter_GFX(int16_t w, int16_t h) : Arduino_GFX(w, h)
   {
-    // Initialize Protomatter specific variables here if needed
     Serial.printf("Protomatter_GFX init\n");
   }
 
@@ -64,7 +63,8 @@ public:
     // b = (b * 527 + 23) >> 6;
 
     // color_t typedColor = color;
-    matrix.drawPixel(x, y, color);
+    renderer_write_pixel(x, y, color);
+    // matrix.drawPixel(x, y, color);
   }
 
   // Implement other necessary methods here
@@ -100,7 +100,7 @@ void renderer_end_frame() {
 }
 
 void renderer_clear() {
-  // gfx->fillScreen(0x0);
+  gfx->fillScreen(0x0);
 }
 
 void renderer_write_pixel(int x, int y, color_t color) {
