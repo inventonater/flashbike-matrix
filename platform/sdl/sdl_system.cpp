@@ -4,16 +4,6 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-// #include <cstdbool.h>
-// #include <cstdlib.h>
-// #include <ctime.h>
-
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-const int BLOCK_SIZE = 20;
-const int GRID_WIDTH = 32;
-const int GRID_HEIGHT = 24;
-
 sys_time_t Time;
 
 uint32_t system_get_millis(void) {
@@ -46,32 +36,14 @@ const Controller *system_get_controller(uint8_t index)
   return NULL;
 }
 
+
 int main() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    if (TTF_Init() < 0) {
-        fprintf(stderr, "SDL_ttf could not initialize! TTF_Error: %s\n", TTF_GetError());
-        return 1;
-    }
-
-    SDL_Window *window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
-        fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        fprintf(stderr, "Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    renderer_init();
     const Game game = game_create();
     game.begin();
+
+    uint16_t width = game.get_grid_width();
+    uint16_t height = game.get_grid_height();
+    renderer_init(width, height);
 
     SDL_Event event;
     bool quit = false;
@@ -107,7 +79,6 @@ int main() {
         uint32_t time = system_get_millis();
 
         Time.delta = time - Time.time;
-        printy("delta: %d\n", Time.delta);
 
         if (Time.delta < game.get_millis_per_frame()) continue;
         Time.time = time;
@@ -143,11 +114,6 @@ int main() {
         renderer_end_frame();
     }
 
-    // Cleanup
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    TTF_Quit();
-    SDL_Quit();
-
+    renderer_cleanup();
     return 0;
 }

@@ -83,7 +83,7 @@ private:
 
 Arduino_GFX* gfx;
 
-void renderer_init() {
+void renderer_init(uint16_t width, uint16_t height) {
 //   while (!Serial) delay(10);
   Serial.printf("renderer_init\n");
   gfx = new Protomatter_GFX(WIDTH, HEIGHT);

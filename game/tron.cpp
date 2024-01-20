@@ -3,8 +3,13 @@
 #include <system.h>
 #include <game.h>
 
-#define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
-#define WIDTH 64   // Matrix width (pixels)
+// #define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
+// #define WIDTH 64   // Matrix width (pixels)
+
+uint8_t _grid_width = 64;
+uint8_t _grid_height = 32;
+uint8_t get_grid_width() { return _grid_width; }
+uint8_t get_grid_height() { return _grid_height; }
 
 #define RESPAWN_TIME 4
 #define TRAIL_LENGTH 80
@@ -60,8 +65,8 @@ bool pendingQuit = false;
 
 pos_t randomPosition() {
     pos_t pos;
-    pos.x = random(0, WIDTH);
-    pos.y = random(0, HEIGHT);
+    pos.x = random(0, _grid_width);
+    pos.y = random(0, _grid_height);
     return pos;
 }
 
@@ -94,7 +99,7 @@ bool isCollision(Bike *bike, int distance = 0) {
             }
         }
 
-        if (pos.x < 0 || pos.x >= WIDTH || pos.y < 0 || pos.y >= HEIGHT) {
+        if (pos.x < 0 || pos.x >= _grid_width || pos.y < 0 || pos.y >= _grid_height) {
             return true;
         }
 
@@ -362,5 +367,7 @@ Game game_create() {
     game.begin = game_begin;
     game.loop = game_loop;
     game.get_millis_per_frame = get_millis_per_frame;
+    game.get_grid_width = get_grid_width;
+    game.get_grid_height = get_grid_height;
     return game;
 }

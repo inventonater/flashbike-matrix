@@ -2,14 +2,13 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-const int BLOCK_SIZE = 20;
+const int BLOCK_SIZE = 3;
 
 static SDL_Window *window = (SDL_Window*)NULL;
 static SDL_Renderer *sdl_renderer = (SDL_Renderer*)NULL;
 
-void renderer_init() {
+void renderer_init(uint16_t width, uint16_t height) 
+{
     fprintf(stderr, "sdl_init start\n");
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -22,7 +21,7 @@ void renderer_init() {
         return;
     }
 
-    window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * BLOCK_SIZE, height * BLOCK_SIZE, SDL_WINDOW_SHOWN);
     if (!window) {
         fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return;
