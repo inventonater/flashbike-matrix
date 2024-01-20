@@ -1,0 +1,38 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/Users/denrei/git/flashbike-matrix/include",
+                "/Users/denrei/git/flashbike-matrix/src",
+                "/opt/homebrew/include",
+                "/opt/homebrew/include/SDL2",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/Users/denrei/git/flashbike-matrix/include",
+                    "/Users/denrei/git/flashbike-matrix/src",
+                    "/opt/homebrew/include",
+                    "/opt/homebrew/include/SDL2",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60113",
+                ""
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "compilerArgs": [
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}

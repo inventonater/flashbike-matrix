@@ -1,5 +1,0 @@
-
-
-audio
-
-https://learn.adafruit.com/adafruit-tpa2016-2-8w-agc-stereo-audio-amplifier/software
