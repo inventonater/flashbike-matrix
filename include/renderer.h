@@ -3,7 +3,12 @@
 
 #include <util.h>
 
-void renderer_init(uint16_t width, uint16_t height);
+typedef struct RenderContext {
+    uint8_t width;
+    uint8_t height;
+} RenderContext;
+
+void renderer_init(RenderContext context);
 void renderer_start_frame(void);
 void renderer_end_frame(void);
 void renderer_cleanup(void);

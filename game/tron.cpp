@@ -6,10 +6,10 @@
 // #define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 // #define WIDTH 64   // Matrix width (pixels)
 
-uint8_t _grid_width = 64;
-uint8_t _grid_height = 32;
-uint8_t get_grid_width() { return _grid_width; }
-uint8_t get_grid_height() { return _grid_height; }
+RenderContext _render_context = {64, 32};
+RenderContext get_render_context() {
+    return _render_context;
+}
 
 #define RESPAWN_TIME 4
 #define TRAIL_LENGTH 80
@@ -61,22 +61,22 @@ struct Spot {
 
 Spot spots[N_SPOTS];
 
-bool pendingQuit = false;
-
 pos_t randomPosition() {
-    pos_t pos;
-    pos.x = random(0, _grid_width);
-    pos.y = random(0, _grid_height);
-    return pos;
+    pos_t position;
+    position.x = random(0, _render_context.width);
+    position.y = random(0, _render_context.height);
+    return position;
 }
 
-pos_t randomDirection() {
-    pos_t dir;
-    if (random(0, 2) == 0) {
+dir_t randomDirection() {
+    dir_t dir;
+    int r = random(0, 2) * 2 - 1;
+    bool use_y = random(0, 2) == 0;
+    if (use_y) {
         dir.x = 0;
-        dir.y = random(0, 2) * 2 - 1;
+        dir.y = r;
     } else {
-        dir.x = random(0, 2) * 2 - 1;
+        dir.x = r;
         dir.y = 0;
     }
     return dir;
@@ -99,7 +99,7 @@ bool isCollision(Bike *bike, int distance = 0) {
             }
         }
 
-        if (pos.x < 0 || pos.x >= _grid_width || pos.y < 0 || pos.y >= _grid_height) {
+        if (pos.x < 0 || pos.x >= _render_context.width || pos.y < 0 || pos.y >= _render_context.height) {
             return true;
         }
 
@@ -143,10 +143,13 @@ void bike_setDirSafe(Bike *bike, dir_t dir) {
 
     dir_t original = bike->dir;
     bike->dir = dir;
-    if (isCollision(bike, 1)) bike->dir = original;
+
+    // todo need to restore this
+//    if (isCollision(bike, 1)) bike->dir = original;
 }
 
-void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
+void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y)
+{
     if (bike->lives < 1) {
         bike->dir = dir_t();
         bike->speed = 0;
@@ -154,8 +157,7 @@ void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
     }
 
     dir_t dir = dir_t(-x, y);
-    if (dir.x == 0 && dir.y == 0)
-        return;
+    if (dir.x == 0 && dir.y == 0) return;
 
     int8_t tmpX = dir.x;
     switch (player_index) {
@@ -175,8 +177,8 @@ void bike_setJoyDirection(int8_t player_index, Bike *bike, int8_t x, int8_t y) {
             break;
     }
 
+
     if (bike->dir.x != dir.x || bike->dir.y != dir.y) {
-        // printy("Joy %d: %d %d\n", player_index, dir.x, dir.y);
         bike_setDirSafe(bike, dir);
     }
 }
@@ -220,7 +222,7 @@ void draw_bikes() {
             pos_t pos = getTrailIndexPos(bike, trailIndex);
             renderer_write_pixel(pos.x, pos.y, c);
         }
-        printy( "Bike %d: %d %d\n", i, bike->pos[0].x, bike->pos[0].y);
+        printy( "Bike %d, %d, pos: %d %d, dir: %d %d\n", i, bike->lives, bike->pos[bike->trailIndex].x, bike->pos[bike->trailIndex].y, bike->dir.x, bike->dir.y);
     }
 }
 
@@ -288,7 +290,7 @@ void update_controllers() {
         uint32_t rotation = newEncoderPosition - bike->lastEncoderPosition;
         bike_rotateDirection(bike, rotation);
         bike->lastEncoderPosition = newEncoderPosition;
-        // printy("Joy %d: %d %d\n", i, controller->x, controller->y);
+         printy("Joy %d: %d %d\n", i, controller->x, controller->y);
     }
 }
 
@@ -367,7 +369,6 @@ Game game_create() {
     game.begin = game_begin;
     game.loop = game_loop;
     game.get_millis_per_frame = get_millis_per_frame;
-    game.get_grid_width = get_grid_width;
-    game.get_grid_height = get_grid_height;
+    game.get_render_context = get_render_context;
     return game;
 }

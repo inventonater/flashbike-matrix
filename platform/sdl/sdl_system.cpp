@@ -6,6 +6,28 @@
 
 sys_time_t Time;
 
+struct KeyboardInput {
+    int8_t x, y;
+    bool quit;
+};
+
+KeyboardInput poll_keyboard() {
+    KeyboardInput input = {};
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        input.quit = event.type == SDL_QUIT;
+        if (event.type != SDL_KEYDOWN) continue;
+
+        SDL_Keycode sym = event.key.keysym.sym;
+        if (sym == SDLK_ESCAPE) { input.quit = true; }
+        if (sym == SDLK_UP) { input.x = 0; input.y = -1; }
+        if (sym == SDLK_DOWN) { input.x = 0; input.y = 1; }
+        if (sym == SDLK_LEFT) { input.x = 1; input.y = 0; }
+        if (sym == SDLK_RIGHT) { input.x = -1; input.y = 0; }
+    }
+    return input;
+}
+
 uint32_t system_get_millis(void) {
     return SDL_GetTicks();
 }
@@ -14,106 +36,60 @@ void system_delay(uint32_t ms) {
     SDL_Delay(ms);
 }
 
-void system_handle_input_events(bool *quit, int *dx, int *dy) {
-    SDL_Event event;
-    if (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) *quit = true;
-        if (event.type != SDL_KEYDOWN) return;
-        SDL_Keycode sym = event.key.keysym.sym;
-        if (sym == SDLK_UP) { *dx = 0; *dy = -1; }
-        if (sym == SDLK_UP) { *dx = 0; *dy = -1; }
-        if (sym == SDLK_DOWN) { *dx = 0; *dy = 1; }
-        if (sym == SDLK_LEFT) { *dx = -1; *dy = 0; }
-        if (sym == SDLK_RIGHT) { *dx = 1; *dy = 0; }
-    }
-}
-
 #define N_CONTROLLERS 4
 Controller controllers[N_CONTROLLERS] = {};
+
 const Controller *system_get_controller(uint8_t index)
 {
   if (index < N_CONTROLLERS) return &controllers[index];
   return NULL;
 }
 
+Game game = {};
+KeyboardInput keyboardInput;
+
+void frame(){
+    uint32_t time = system_get_millis();
+    Time.delta = time - Time.time;
+    if (Time.delta < game.get_millis_per_frame()) return;
+    Time.time = time;
+
+    const KeyboardInput &input = poll_keyboard();
+    if(input.x != 0 || input.y != 0 || input.quit) keyboardInput = input;
+
+    printy("keyboardInput.x: %d\n", keyboardInput.x);
+    printy("keyboardInput.y: %d\n", keyboardInput.y);
+    printy("keyboardInput.quit: %d\n", keyboardInput.quit);
+
+    renderer_start_frame();
+
+    for (size_t i = 0; i < N_CONTROLLERS; i++)
+    {
+        Controller *c = &controllers[i];
+        c->active = false;
+    }
+
+    Controller *c = &controllers[0];
+    c->active = true;
+    c->x = keyboardInput.x;
+    c->y = keyboardInput.y;
+
+    game.loop();
+    renderer_end_frame();
+}
 
 int main() {
-    const Game game = game_create();
+    game = game_create();
     game.begin();
 
-    uint16_t width = game.get_grid_width();
-    uint16_t height = game.get_grid_height();
-    renderer_init(width, height);
+    renderer_init(game.get_render_context());
 
-    SDL_Event event;
-    bool quit = false;
-    int dx = 1, dy = 0;
-    Uint32 last_move_time = SDL_GetTicks();
-
-    while (!quit) {
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                quit = true;
-            } else if (event.type == SDL_KEYDOWN) {
-                switch (event.key.keysym.sym) {
-                    case SDLK_UP:
-                        dx = 0;
-                        dy = -1;
-                        break;
-                    case SDLK_DOWN:
-                        dx = 0;
-                        dy = 1;
-                        break;
-                    case SDLK_LEFT:
-                        dx = -1;
-                        dy = 0;
-                        break;
-                    case SDLK_RIGHT:
-                        dx = 1;
-                        dy = 0;
-                        break;
-                }
-            }
-        }
-
-        uint32_t time = system_get_millis();
-
-        Time.delta = time - Time.time;
-
-        if (Time.delta < game.get_millis_per_frame()) continue;
-        Time.time = time;
-
-        renderer_start_frame();
-        // encoder_updateAll();
-        // chuck_updateAll();
-
-        for (size_t i = 0; i < N_CONTROLLERS; i++)
-        {
-            Controller *c = &controllers[i];
-            c->active = false;
-
-            // if (encoder_isActive(i))
-            // {
-            //     c->active = true;
-            //     c->position = encoders[i].position;
-            // }
-
-            // if (chuck_isActive(i))
-            // {
-            //     c->active = true;
-            //     c->x = chucks[i].x;
-            //     c->y = chucks[i].y;
-            // }
-
-        #ifdef PRINT_CONTROLLER_STATE
-            Serial.printf("Controller %d: active: %d, x: %d, y: %d, position: %d\n", i, c->active, c->x, c->y, c->position);
-        #endif
-        }
-
-        game.loop();
-        renderer_end_frame();
+    while (true) {
+        frame();
+        if (keyboardInput.quit) break;
     }
 
     renderer_cleanup();
     return 0;
 }
+

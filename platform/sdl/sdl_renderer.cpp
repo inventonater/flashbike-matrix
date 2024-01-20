@@ -7,7 +7,7 @@ const int BLOCK_SIZE = 3;
 static SDL_Window *window = (SDL_Window*)NULL;
 static SDL_Renderer *sdl_renderer = (SDL_Renderer*)NULL;
 
-void renderer_init(uint16_t width, uint16_t height) 
+void renderer_init(RenderContext context)
 {
     fprintf(stderr, "sdl_init start\n");
 
@@ -21,7 +21,9 @@ void renderer_init(uint16_t width, uint16_t height)
         return;
     }
 
-    window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width * BLOCK_SIZE, height * BLOCK_SIZE, SDL_WINDOW_SHOWN);
+    int w = context.width * BLOCK_SIZE;
+    int h = context.height * BLOCK_SIZE;
+    window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h, SDL_WINDOW_SHOWN);
     if (!window) {
         fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return;
@@ -50,7 +52,8 @@ void renderer_end_frame() {
 
 void renderer_write_pixel(int x, int y, color_t color) {
     SDL_Rect rect = {x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
-    SDL_SetRenderDrawColor(sdl_renderer, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
+//    SDL_SetRenderDrawColor(sdl_renderer, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
+    SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(sdl_renderer, &rect);
 }
 
