@@ -2,7 +2,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-const int BLOCK_SIZE = 3;
+const int BLOCK_SIZE = 5;
 
 static SDL_Window *window = (SDL_Window*)NULL;
 static SDL_Renderer *sdl_renderer = (SDL_Renderer*)NULL;
@@ -50,19 +50,29 @@ void renderer_end_frame() {
     SDL_RenderPresent(sdl_renderer);
 }
 
+// set render draw color from color_t
+void renderer_set_color(color_t color565) {
+    uint8_t r = (color565 >> 11) & 0x1F;
+    uint8_t g = (color565 >> 5) & 0x3F;
+    uint8_t b = color565 & 0x1F;
+
+    // Scale values to 8-bit
+    r = (r * 255) / 31;
+    g = (g * 255) / 63;
+    b = (b * 255) / 31;
+
+    SDL_SetRenderDrawColor(sdl_renderer, r, g, b, 255);
+}
+
 void renderer_write_pixel(int x, int y, color_t color) {
+    renderer_set_color(color);
     SDL_Rect rect = {x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE};
-//    SDL_SetRenderDrawColor(sdl_renderer, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
-    SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(sdl_renderer, &rect);
 }
 
 void renderer_draw_rect(int x, int y, int width, int height, color_t color) {
-    fprintf(stderr, "sdl_draw_rect x and y: %d, %d  width and height: %d, %d\n", x, y, width, height);
-
+    renderer_set_color(color);
     SDL_Rect rect = {x * BLOCK_SIZE, y * BLOCK_SIZE, width * BLOCK_SIZE, height * BLOCK_SIZE};
-    // SDL_SetRenderDrawColor(sdl_renderer, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF, 255);
-    SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(sdl_renderer, &rect);
 }
 

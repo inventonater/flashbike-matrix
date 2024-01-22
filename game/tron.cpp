@@ -215,11 +215,12 @@ void draw_bikes() { TAG
         Bike *bike = &bikes[i];
 
         for (int trailIndex = 0; trailIndex < TRAIL_LENGTH; trailIndex++) {
-            // draw trail with gamma correction but no pulse effect
             uint8_t lerp = 255 * trailIndex / TRAIL_LENGTH;
             uint8_t val = remap(lerp, 3, 16, 160);
             color_t c = renderer_color_hsv(bike->hue, 255, val);
             pos_t pos = getTrailIndexPos(bike, trailIndex);
+            
+            printy("TRAIL %d: %d, %d\n", trailIndex, lerp, val);
             renderer_write_pixel(pos.x, pos.y, c);
         }
         printy( "Bike %d, %d, pos: %d %d, dir: %d %d\n", i, bike->lives, bike->pos[bike->trailIndex].x, bike->pos[bike->trailIndex].y, bike->dir.x, bike->dir.y);

@@ -24,6 +24,8 @@ uint8_t expmap(uint8_t val) {
 }
 
 uint32_t remap(uint32_t val, uint32_t p, uint32_t _min, uint32_t _max) {
+    if (val <= _min) return _min;
+
     // Convert to double for precise division and power calculations
     double normalizedVal = static_cast<double>(val - _min) / (_max - _min);
     double poweredVal = pow(normalizedVal, static_cast<double>(p));
@@ -82,11 +84,11 @@ color_t renderer_color_hsv(hue_t hue, uint8_t sat, uint8_t val) {
 }
 
 
-uint16_t color_hueForBikeIndex(int i, int numColors) {
+hue_t color_hueForBikeIndex(int i, int numColors) {
     return (i * 65535 / numColors); //
 }
 
-uint16_t color_randomHue() {
+hue_t color_randomHue() {
     std::random_device rd; // Obtain a seed from the system's random number generator
     std::mt19937 gen(rd()); // Seed the generator
 
@@ -113,4 +115,35 @@ int random(int max) {
     std::uniform_int_distribution<> distrib(0, max - 1);
 
     return distrib(gen);
+}
+
+
+c8888_t RGB888toRGBA8888(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    return (r << 24) | (g << 16) | (b << 8) | a;
+}
+
+color_t RGB888toRGB565(uint8_t r, uint8_t g, uint8_t b) {
+    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+}
+
+color_t RGBA8888toRGB565(c8888_t colorRGBA) {
+    return RGB888toRGB565(colorRGBA >> 24, colorRGBA >> 16, colorRGBA >> 8);
+}
+
+void RGBA8888toRGB888(c8888_t colorRGBA, uint8_t *r, uint8_t *g, uint8_t *b) {
+    *r = colorRGBA >> 24;
+    *g = colorRGBA >> 16;
+    *b = colorRGBA >> 8;
+}
+
+void RGB565toRGB888(color_t color565, uint8_t *r, uint8_t *g, uint8_t *b) {
+    *r = (color565 >> 11) & 0x1F; *r = (*r * 255) / 31;
+    *g = (color565 >> 5) & 0x3F;  *g = (*g * 255) / 63;
+    *b = color565 & 0x1F;         *b = (*b * 255) / 31;
+}
+
+c8888_t RGB565toRGBA8888(color_t color565, uint8_t a) {
+    uint8_t r, g, b;
+    RGB565toRGB888(color565, &r, &g, &b);
+    return RGB888toRGBA8888(r, g, b, a);
 }
