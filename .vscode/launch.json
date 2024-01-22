@@ -29,31 +29,31 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/Users/denrei/git/flashbike-matrix/.pio/build/tron_native/program",
-            "projectEnvName": "tron_native",
-            "toolchainBinDir": "/usr/bin",
+            "executable": "/Users/denrei/git/flashbike-matrix/.pio/build/tron_adafruit_matrix_portal_s3/firmware.elf",
+            "projectEnvName": "tron_adafruit_matrix_portal_s3",
+            "toolchainBinDir": "/Users/denrei/.platformio/packages/toolchain-xtensa-esp32s3/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
-                "task": "Pre-Debug (tron_native)"
+                "task": "Pre-Debug (tron_adafruit_matrix_portal_s3)"
             }
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/Users/denrei/git/flashbike-matrix/.pio/build/tron_native/program",
-            "projectEnvName": "tron_native",
-            "toolchainBinDir": "/usr/bin",
+            "executable": "/Users/denrei/git/flashbike-matrix/.pio/build/tron_adafruit_matrix_portal_s3/firmware.elf",
+            "projectEnvName": "tron_adafruit_matrix_portal_s3",
+            "toolchainBinDir": "/Users/denrei/.platformio/packages/toolchain-xtensa-esp32s3/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "/Users/denrei/git/flashbike-matrix/.pio/build/tron_native/program",
-            "projectEnvName": "tron_native",
-            "toolchainBinDir": "/usr/bin",
+            "executable": "/Users/denrei/git/flashbike-matrix/.pio/build/tron_adafruit_matrix_portal_s3/firmware.elf",
+            "projectEnvName": "tron_adafruit_matrix_portal_s3",
+            "toolchainBinDir": "/Users/denrei/.platformio/packages/toolchain-xtensa-esp32s3/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
         }

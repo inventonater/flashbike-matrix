@@ -7,10 +7,21 @@
 #include <random>
 #include <limits>
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#define printy(format, ...) Serial.printf(format, ##__VA_ARGS__)
+#else
+// #define printy(format, ...) printf(format, ##__VA_ARGS__)
+#endif
+
+#define TAG printy("Function: %s, Line: %d\n", __FUNCTION__, __LINE__);
+// printf("File: %s, Function: %s, Line: %d\n", __FILE__, __FUNCTION__, __LINE__);
+// #define PRINTY(msg) printf("%s, Function: %s, Line: %d\n", msg, __FUNCTION__, __LINE__);
+// #define PRINTY(var) printf("Var: %d, Function: %s, Line: %d\n", var, __FUNCTION__, __LINE__);
+
 typedef int16_t color_t;
 typedef int16_t hue_t;
 
-void printy(const char *format, ...);
 int sign(const int8_t &x);
 uint32_t secToMicros(float s);
 uint32_t secToMillis(float s);

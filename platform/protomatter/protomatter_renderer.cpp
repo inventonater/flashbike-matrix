@@ -21,7 +21,8 @@ uint8_t addrPins[] = {
     PIN_PROTOMATTER_ADDR_2,
     PIN_PROTOMATTER_ADDR_3
 #ifdef PIN_PROTOMATTER_ADDR_4
-    , PIN_PROTOMATTER_ADDR_4
+    ,
+    PIN_PROTOMATTER_ADDR_4
 #endif
 };
 
@@ -47,7 +48,7 @@ public:
   bool begin(int32_t speed = GFX_NOT_DEFINED) override
   {
     ProtomatterStatus status = matrix.begin();
-    Serial.printf("Protomatter_GFX.begin.  matrix status: %d\n", status);
+    Serial.printf("Protomatter_GFX.begin [matrix status: %d]\n", status);
     return true;
   }
 
@@ -63,8 +64,7 @@ public:
     // b = (b * 527 + 23) >> 6;
 
     // color_t typedColor = color;
-    renderer_write_pixel(x, y, color);
-    // matrix.drawPixel(x, y, color);
+    matrix.drawPixel(x, y, color);
   }
 
   // Implement other necessary methods here
@@ -77,44 +77,46 @@ public:
 
 private:
   Adafruit_Protomatter matrix = Adafruit_Protomatter(
-        WIDTH, bitDepth, 1, rgbPins, sizeof(addrPins), addrPins,
-        clockPin, latchPin, oePin, doubleBuffer);
+      WIDTH, bitDepth, 1, rgbPins, sizeof(addrPins), addrPins,
+      clockPin, latchPin, oePin, doubleBuffer);
 };
 
-Arduino_GFX* gfx;
+Arduino_GFX *gfx;
 
-void renderer_init(uint16_t width, uint16_t height) {
-//   while (!Serial) delay(10);
-  Serial.printf("renderer_init\n");
+void renderer_init(RenderContext context) { TAG
   gfx = new Protomatter_GFX(WIDTH, HEIGHT);
   gfx->begin();
 }
 
-void renderer_start_frame() {
+void renderer_start_frame() { TAG
   gfx->startWrite();
   gfx->writeFillRect(0, 0, gfx->width(), gfx->height(), 0x0);
 }
 
-void renderer_end_frame() {
+void renderer_end_frame() { TAG
   gfx->endWrite();
 }
 
-void renderer_write_pixel(int x, int y, color_t color) {
+void renderer_write_pixel(int x, int y, color_t color)
+{
   gfx->writePixelPreclipped(x, y, color);
 }
 
-void renderer_draw_rect(int x, int y, int width, int height, uint32_t color) {
+void renderer_draw_rect(int x, int y, int width, int height, uint32_t color)
+{
   gfx->drawFastHLine(x, y, width, color);
   gfx->drawFastHLine(x, y + height - 1, width, color);
   gfx->drawFastVLine(x, y, height, color);
   gfx->drawFastVLine(x + width - 1, y, height, color);
 }
 
-void renderer_draw_filled_rect(int x, int y, int width, int height, uint32_t color) {
+void renderer_draw_filled_rect(int x, int y, int width, int height, uint32_t color)
+{
   gfx->fillRect(x, y, width, height, color);
 }
 
-void renderer_draw_circle(int x, int y, int radius, uint16_t color, uint16_t borderColor) {
+void renderer_draw_circle(int x, int y, int radius, uint16_t color, uint16_t borderColor)
+{
   gfx->fillCircle(x, y, radius, color);
   gfx->drawCircle(x, y, radius, borderColor);
 }

@@ -6,7 +6,7 @@
 // #define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 // #define WIDTH 64   // Matrix width (pixels)
 
-RenderContext _render_context = {64, 32};
+RenderContext _render_context = {64, 64};
 RenderContext get_render_context() {
     return _render_context;
 }
@@ -198,7 +198,7 @@ void bike_rotateDirection(Bike *bike, int8_t rotation) {
     bike_setDirSafe(bike, dir);
 }
 
-void moveBike(Bike *bike) {
+void moveBike(Bike *bike) { TAG
     pos_t pos = bike->pos[bike->trailIndex];
     pos.x += bike->dir.x;
     pos.y += bike->dir.y;
@@ -210,7 +210,7 @@ pos_t getTrailIndexPos(Bike *bike, uint8_t trailIndex) {
     return bike->pos[(bike->trailIndex + trailIndex) % TRAIL_LENGTH];
 }
 
-void draw_bikes() {
+void draw_bikes() { TAG
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
 
@@ -235,7 +235,7 @@ void draw_bikes() {
 //     }
 // }
 
-void initBike(Bike *pBike, uint16_t hue) {
+void initBike(Bike *pBike, uint16_t hue) { TAG
     for (int i = 0; i < TRAIL_LENGTH; i++) {
         pBike->pos[i] = (pos_t) {0, 0};
     }
@@ -254,7 +254,7 @@ void initSpot(Spot *pSpot) {
     pSpot->current = 0;
 }
 
-void bike_died(Bike *pBike) {
+void bike_died(Bike *pBike) { TAG
     pBike->millisUntilRespawn = secToMillis(RESPAWN_TIME);
     pBike->lives = pBike->lives - 1;
 
@@ -278,7 +278,7 @@ void drawSpot(Spot *pSpot) {
     printy("Spot %d %d %d\n", pSpot->pos.x, pSpot->pos.y, pSpot->radius);
 }
 
-void update_controllers() {
+void update_controllers() { TAG
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
         const Controller *controller = system_get_controller(i);
@@ -294,7 +294,7 @@ void update_controllers() {
     }
 }
 
-void update_bikes() {
+void update_bikes() { TAG
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
 
@@ -311,7 +311,7 @@ void update_bikes() {
     }
 }
 
-void update_collision() {
+void update_collision() { TAG
     for (int i = 0; i < N_BIKES; i++) {
         Bike *bike = &bikes[i];
         if (isCollision(bike, 0)) {
@@ -320,7 +320,7 @@ void update_collision() {
     }
 }
 
-void update_spots() {
+void update_spots() { TAG
     for (int i = 0; i < N_SPOTS; i++) {
         Spot *spot = &spots[i];
         spot->current += Time.delta;
@@ -332,7 +332,7 @@ void update_spots() {
     }
 }
 
-void game_begin() {
+void game_begin() { TAG
     printy("TRON game started\n");
 
     for (int8_t i = 0; i < N_BIKES; i++) {
@@ -348,7 +348,7 @@ void game_begin() {
     printy("%d total bikes\n", N_BIKES);
 }
 
-void game_loop() {
+void game_loop() { TAG
     printy("game_loop start\n");
 
     update_controllers();
@@ -364,7 +364,7 @@ uint8_t get_millis_per_frame() {
     return 20  ;
 }
 
-Game game_create() {
+Game game_create() { TAG
     Game game;
     game.begin = game_begin;
     game.loop = game_loop;

@@ -166,9 +166,10 @@ void setup()
 
   encoder_initAll();
   chuck_initAll();
-  renderer_init();
   game = game_create();
   game.begin();
+
+  renderer_init(game.get_render_context());
 
   pinMode(SPEAKER_PIN, OUTPUT);
 }
