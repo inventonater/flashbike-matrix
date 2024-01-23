@@ -2,6 +2,8 @@
 #include <renderer.h>
 #include <system.h>
 #include <game.h>
+#include <arduino_sprite.h>
+
 
 // #define HEIGHT 32  // Matrix height (pixels) - SET TO 64 FOR 64x64 MATRIX!
 // #define WIDTH 64   // Matrix width (pixels)
