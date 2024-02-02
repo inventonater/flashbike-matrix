@@ -330,6 +330,9 @@ void initGame()
 {
     // Initialize the Wiichuck
     chuck.begin();
+	if (chuck.type == Unknown) {
+		chuck.type = NUNCHUCK;
+	}
 
     // Initialize the game board to be empty
     for (int x = 0; x < WIDTH; x++)
