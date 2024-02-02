@@ -31,28 +31,27 @@ void setup() {
 void loop() {
   for (int i = 0; i < 4; i++) {
     pcaselect(i);
-    auto nunchuck = chucks[i];
+    auto chuck = chucks[i];
 
-    nunchuck.readData();    // Read inputs and update maps
+    chuck.readData();    // Read inputs and update maps
     Serial.print("Nunchuck "); 
     Serial.print(i); 
     Serial.print(":"); 
-    Serial.println(nunchuck.getJoyX());
+    Serial.println(chuck.getJoyX());
     
-    continue;
-    Serial.print("X: "); Serial.print(nunchuck.getAccelX());
-    Serial.print(" \tY: "); Serial.print(nunchuck.getAccelY()); 
-    Serial.print(" \tZ: "); Serial.println(nunchuck.getAccelZ()); 
+    Serial.print("X: "); Serial.print(chuck.getAccelX());
+    Serial.print(" \tY: "); Serial.print(chuck.getAccelY()); 
+    Serial.print(" \tZ: "); Serial.println(chuck.getAccelZ()); 
 
     Serial.print("Joy: ("); 
-    Serial.print(nunchuck.getJoyX());
+    Serial.print(chuck.getJoyX());
     Serial.print(", "); 
-    Serial.print(nunchuck.getJoyY());
+    Serial.print(chuck.getJoyY());
     Serial.println(")");
 
     Serial.print("Button: "); 
-    if (nunchuck.getButtonZ()) Serial.print(" Z "); 
-    if (nunchuck.getButtonC()) Serial.print(" C "); 
+    if (chuck.getButtonZ()) Serial.print(" Z "); 
+    if (chuck.getButtonC()) Serial.print(" C "); 
 
     Serial.println();
   }
