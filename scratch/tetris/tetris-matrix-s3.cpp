@@ -8,8 +8,8 @@
 
 const int POINTS_PER_LINE = 100;
 const int MAX_SCORE = 1000;
-const int MAX_DELAY = 1000;
-const int MIN_DELAY = 100;
+const int MAX_DELAY = 200;
+const int MIN_DELAY = 10;
 
 uint8_t rgbPins[] = {
     42,
@@ -118,6 +118,8 @@ bool canMove(Tetromino piece, int dx, int dy)
 
 void selectRandomTetromino()
 {
+    Serial.println("Selecting random tetromino...");
+
     // The next piece becomes the current piece
     currentPiece = nextPiece;
 
@@ -136,6 +138,8 @@ void selectRandomTetromino()
 
 void rotateTetromino(bool clockwise)
 {
+    Serial.println("Rotating tetromino...");
+
     // Create a copy of the Tetromino and rotate it
     Tetromino rotatedPiece = currentPiece;
     for (auto &block : rotatedPiece.blocks)
@@ -174,6 +178,14 @@ void rotateTetromino(bool clockwise)
     }
 }
 
+int mapJoystickValue(int value) {
+    int neutral = 128;
+    int deadzone = 100;
+    if (value > neutral + deadzone) return 1;
+    else if (value < neutral - deadzone) return -1;
+    return 0;
+}
+
 void handleInput()
 {
     // Update the Wiichuck state
@@ -203,7 +215,10 @@ void handleInput()
     Serial.println();
 
     // Move the current Tetromino based on the Wiichuck joystick
-    if (chuck.getJoyX() < 0)
+    auto joyX = mapJoystickValue(chuck.getJoyX());
+    auto joyY = mapJoystickValue(chuck.getJoyY());
+
+    if (joyX < 0)
     {
         // Move left
         if (canMove(currentPiece, -1, 0))
@@ -211,7 +226,7 @@ void handleInput()
             currentPiece.position.x--;
         }
     }
-    else if (chuck.getJoyX() > 0)
+    else if (joyX > 0)
     {
         // Move right
         if (canMove(currentPiece, 1, 0))
@@ -219,7 +234,7 @@ void handleInput()
             currentPiece.position.x++;
         }
     }
-    else if (chuck.getJoyY() > 0)
+    else if (joyY > 0)
     {
         // Fall faster
         if (canMove(currentPiece, 0, 1))
@@ -311,11 +326,12 @@ void clearLines() {
 }
 
 void displayScreen(uint16_t bgColor, int cursorX, int cursorY, uint16_t textColor, const char* text) {
-    matrix.fillScreen(bgColor); // Fill the screen with the specified color
-    matrix.setCursor(cursorX, cursorY); // Set the cursor to the specified position
-    matrix.setTextColor(textColor); // Set the text color
-    matrix.println(text); // Print the text
-    matrix.show(); // Update the screen
+    Serial.println(text);
+    // matrix.fillScreen(bgColor); // Fill the screen with the specified color
+    // matrix.setCursor(cursorX, cursorY); // Set the cursor to the specified position
+    // matrix.setTextColor(textColor); // Set the text color
+    // matrix.println(text); // Print the text
+    // matrix.show(); // Update the screen
 }
 
 void displayIntroScreen() {
@@ -328,6 +344,7 @@ void displayGameOverScreen() {
 
 void initGame()
 {
+    Serial.println("Initializing game...");
     // Initialize the Wiichuck
     chuck.begin();
 	if (chuck.type == Unknown) {
@@ -355,6 +372,7 @@ void initGame()
 
 void updateGame()
 {
+    Serial.println("Updating game...");
     // Try to move the current Tetromino down
     if (canMove(currentPiece, 0, 1))
     {
@@ -400,8 +418,8 @@ void renderGame()
     // Draw the next piece in a dedicated area of the screen
     for (auto &block : nextPiece.blocks)
     {
-        int x = WIDTH + block.x; // Adjust the x-coordinate to the dedicated area
-        int y = block.y;
+        int x = (WIDTH/2) + block.x; // Adjust the x-coordinate to the dedicated area
+        int y = HEIGHT - block.y;
         matrix.drawPixel(x, y, nextPiece.color);
     }
 
@@ -417,10 +435,19 @@ void renderGame()
 
 void setup() {
     Serial.begin(115200);
-    if (!matrix.begin()) {
-        Serial.println("Failed to start the matrix");
-        while (1);
-    }
+    while (!Serial) delay(100); // Wait for Serial Monitor to open
+    Serial.println("Setup...");
+
+    // Initialize the matrix
+    ProtomatterStatus status = matrix.begin();
+    Serial.printf("Protomatter begin() status: %d\n", status);
+
+    // if (status != PROTOMATTER_OK) {
+    //     Serial.println("Failed to start the matrix");
+    //     while (1);
+    // }
+
+    Serial.println("matrix being complete.");
 
     // Display the intro screen
     displayIntroScreen();
@@ -432,6 +459,8 @@ void setup() {
 
 void loop()
 {
+    Serial.println("Loop...");
+
     if (gameOver) {
         displayGameOverScreen();
         delay(2000); // Wait for 2 seconds
@@ -440,6 +469,7 @@ void loop()
         initGame(); // Restart the game
         return;
     }
+    
     handleInput();
     updateGame();
     clearLines();
